@@ -9,24 +9,19 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- Mobile Menu Toggle -->
         <button class="mobile-toggle" onclick="toggleSidebar()">
             <i class="fas fa-bars"></i>
         </button>
 
-        <!-- Sidebar -->
         <nav class="sidebar" id="sidebar">
             <div class="logo">
                 <h1><i class="fas fa-utensils"></i> Smart Pantry</h1>
                 <p>Your Kitchen Assistant</p>
             </div>
 
-            <!-- User Profile Section -->
             <div class="user-profile" id="userProfile" style="display: none;">
-                <div onclick="openEditProfileModal()" style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 12px; margin-bottom: 1rem; cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
-                    <div style="width: 50px; height: 50px; background: #667eea; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem; font-weight: bold;" id="userAvatar">
-                        U
-                    </div>
+                <div onclick="openEditProfileModal()" style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 12px; margin-bottom: 1rem; cursor: pointer; transition: all 0.3s ease;">
+                    <div style="width: 50px; height: 50px; background: #667eea; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem; font-weight: bold;" id="userAvatar">U</div>
                     <div style="flex: 1;">
                         <div style="font-weight: bold; color: white;" id="userName">User Name</div>
                         <div style="font-size: 0.8rem; color: rgba(255,255,255,0.8);" id="userEmail">user@example.com</div>
@@ -40,47 +35,18 @@
                         </button>
                     </div>
                 </div>
-            </div>                        <ul class="nav-menu">
-                <li class="nav-item">
-                    <a href="#" class="nav-link active" onclick="showPage('dashboard')">
-                        <i class="fas fa-tachometer-alt"></i>
-                        Dashboard
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link" onclick="showPage('inventory')">
-                        <i class="fas fa-boxes"></i>
-                        Pantry Inventory
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link" onclick="showPage('recipes')">
-                        <i class="fas fa-utensils"></i>
-                        Recipes
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link" onclick="showPage('meal-planner')">
-                        <i class="fas fa-calendar-alt"></i>
-                        Meal Planner
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link" onclick="showPage('grocery-list')">
-                        <i class="fas fa-shopping-cart"></i>
-                        Grocery List
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link" onclick="showPage('settings')">
-                        <i class="fas fa-cog"></i>
-                        Settings
-                    </a>
-                </li>
+            </div>
+
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="#" class="nav-link active" onclick="showPage('dashboard')"><i class="fas fa-tachometer-alt"></i>Dashboard</a></li>
+                <li class="nav-item"><a href="#" class="nav-link" onclick="showPage('inventory')"><i class="fas fa-boxes"></i>Pantry Inventory</a></li>
+                <li class="nav-item"><a href="#" class="nav-link" onclick="showPage('recipes')"><i class="fas fa-utensils"></i>Recipes</a></li>
+                <li class="nav-item"><a href="#" class="nav-link" onclick="showPage('meal-planner')"><i class="fas fa-calendar-alt"></i>Meal Planner</a></li>
+                <li class="nav-item"><a href="#" class="nav-link" onclick="showPage('grocery-list')"><i class="fas fa-shopping-cart"></i>Grocery List</a></li>
+                <li class="nav-item"><a href="#" class="nav-link" onclick="showPage('settings')"><i class="fas fa-cog"></i>Settings</a></li>
             </ul>
         </nav>
 
-        <!-- Main Content -->
         <main class="main-content" id="main-content">
             <!-- Dashboard Page -->
             <div id="dashboard" class="page active">
@@ -89,88 +55,34 @@
                     <p class="page-subtitle">Welcome to your Smart Pantry</p>
                 </div>
 
-                <!-- Stats Overview -->
                 <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-number">42</div>
-                        <div class="stat-label">Items in Pantry</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">3</div>
-                        <div class="stat-label">Expiring Soon</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">7</div>
-                        <div class="stat-label">Planned Meals</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">12</div>
-                        <div class="stat-label">Shopping Items</div>
-                    </div>
+                    <div class="stat-card"><div class="stat-number" id="totalItems">0</div><div class="stat-label">Items in Pantry</div></div>
+                    <div class="stat-card"><div class="stat-number" id="expiringItems">0</div><div class="stat-label">Expiring Soon</div></div>
+                    <div class="stat-card"><div class="stat-number" id="expiredItems">0</div><div class="stat-label">Expired Items</div></div>
+                    <div class="stat-card"><div class="stat-number" id="lowStockItems">0</div><div class="stat-label">Low Stock</div></div>
                 </div>
 
-                <div class="card-grid">
-                    <!-- Alerts Card -->
+                <div class="dashboard-grid">
                     <div class="card">
-                        <h3>Notifications</h3>
-                        <div class="alert alert-warning">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <div>3 items expiring within 3 days</div>
-                        </div>
-                        <div class="alert alert-danger">
-                            <i class="fas fa-times-circle"></i>
-                            <div>2 items have expired</div>
-                        </div>
+                        <div class="card-header"><h2>Notifications</h2></div>
+                        <div class="card-content" id="alertsContainer"></div>
                     </div>
-
-                    <!-- Quick Actions -->
                     <div class="card">
-                        <h3>Quick Actions</h3>
-                        <div class="quick-actions">
-                            <button class="btn btn-primary" onclick="openAddItemModal()">
-                                <i class="fas fa-plus"></i>
-                                Add Item
-                            </button>
-                            <button class="btn btn-secondary" onclick="showPage('meal-planner')">
-                                <i class="fas fa-calendar-plus"></i>
-                                Plan Meals
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Weekly Plan Snapshot -->
-                    <div class="card">
-                        <h3>This Week's Plan</h3>
-                        <div style="margin-top: 1rem;">
-                            <div style="margin-bottom: 0.5rem;">
-                                <strong>Tonight:</strong> Spaghetti Carbonara
-                            </div>
-                            <div style="margin-bottom: 0.5rem;">
-                                <strong>Tomorrow:</strong> Chicken Stir Fry
-                            </div>
-                            <div style="margin-bottom: 0.5rem;">
-                                <strong>Wednesday:</strong> Vegetable Curry
+                        <div class="card-header"><h2>Quick Actions</h2></div>
+                        <div class="card-content">
+                            <div class="action-buttons">
+                                <button class="btn btn-primary" onclick="openAddItemModal()"><i class="fas fa-plus"></i>Add Item</button>
+                                <button class="btn btn-secondary" onclick="showPage('meal-planner')"><i class="fas fa-calendar-plus"></i>Plan Meals</button>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Suggested Recipes -->
                     <div class="card">
-                        <h3>Recipe Suggestions</h3>
-                        <div style="margin-top: 1rem;">
-                            <div style="margin-bottom: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
-                                <strong>Mushroom Risotto</strong>
-                                <div style="font-size: 0.9rem; color: #666; margin-top: 0.3rem;">
-                                    Uses: Rice, Mushrooms, Cheese
-                                </div>
-                            </div>
-                            <div style="margin-bottom: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
-                                <strong>Tomato Pasta</strong>
-                                <div style="font-size: 0.9rem; color: #666; margin-top: 0.3rem;">
-                                    Uses: Pasta, Tomatoes, Basil
-                                </div>
-                            </div>
-                        </div>
+                        <div class="card-header"><h2>This Week's Plan</h2></div>
+                        <div class="card-content" id="plannedMealsPreview"></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h2>Recipe Suggestions</h2></div>
+                        <div class="card-content" id="recipeSuggestions"></div>
                     </div>
                 </div>
             </div>
@@ -182,306 +94,91 @@
                     <p class="page-subtitle">Manage your kitchen items</p>
                 </div>
 
-                <!-- Filters and Add Button -->
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
-                    <div class="filters" style="display: flex; gap: 1rem; align-items: center;">
-                        <input type="text" placeholder="Search items..." style="padding: 0.8rem; border: 1px solid rgba(0, 0, 0, 0.1); border-radius: 12px; background: rgba(255, 255, 255, 0.9); font-size: 0.9rem; min-width: 200px;" id="searchInput" oninput="searchItems(this.value)">
-                        <select class="filter-select" onchange="filterInventory(this.value)">
-                            <option value="all">All Categories</option>
-                            <option value="dairy">Dairy</option>
-                            <option value="meat">Meat</option>
-                            <option value="vegetables">Vegetables</option>
-                            <option value="grains">Grains</option>
-                            <option value="fruits">Fruits</option>
-                            <option value="condiments">Condiments</option>
-                        </select>
-                    </div>
-                    <div style="display: flex; gap: 1rem;">
-                        <button class="btn btn-secondary" onclick="openScanPantryModal()">
-                            <i class="fas fa-camera"></i>
-                            Scan Items
-                        </button>
-                        <button class="btn btn-primary" onclick="openAddItemModal()">
-                            <i class="fas fa-plus"></i>
-                            Add Item
-                        </button>
-                    </div>
+                <div class="inventory-controls">
+                    <input type="text" placeholder="Search items..." class="form-input" id="searchInput" style="max-width: 300px;">
+                    <select class="form-select" onchange="filterInventory(this.value)" style="max-width: 200px;">
+                        <option value="all">All Categories</option>
+                        <option value="dairy">Dairy</option>
+                        <option value="meat">Meat</option>
+                        <option value="vegetables">Vegetables</option>
+                        <option value="grains">Grains</option>
+                        <option value="fruits">Fruits</option>
+                        <option value="condiments">Condiments</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="openAddItemModal()"><i class="fas fa-plus"></i>Add Item</button>
                 </div>
 
-                <!-- Inventory Grid -->
-                <div class="inventory-grid">
-                    <div class="inventory-item low-stock">
-                        <div class="item-header">
-                            <div>
-                                <div class="item-name">Eggs</div>
-                                <div class="item-category">Dairy</div>
-                            </div>
-                        </div>
-                        <div class="item-details">
-                            <div class="item-quantity">2 remaining</div>
-                            <div class="item-expiry">Expires: August 5, 2025</div>
-                        </div>
-                        <div class="item-actions">
-                            <button class="btn btn-small btn-secondary" onclick="editInventoryItem(this)">Edit</button>
-                            <button class="btn btn-small btn-secondary" onclick="deleteInventoryItem(this)">Delete</button>
-                        </div>
-                    </div>
-
-                    <div class="inventory-item">
-                        <div class="item-header">
-                            <div>
-                                <div class="item-name">Chicken Breast</div>
-                                <div class="item-category">Meat</div>
-                            </div>
-                        </div>
-                        <div class="item-details">
-                            <div class="item-quantity">2 lbs</div>
-                            <div class="item-expiry">Expires: August 3, 2025</div>
-                        </div>
-                        <div class="item-actions">
-                            <button class="btn btn-small btn-secondary" onclick="editInventoryItem(this)">Edit</button>
-                            <button class="btn btn-small btn-secondary" onclick="deleteInventoryItem(this)">Delete</button>
-                        </div>
-                    </div>
-                    
-                    <!-- Fixed Milk Item -->
-                    <div class="inventory-item">
-                        <div class="item-header">
-                            <div>
-                                <div class="item-name">Milk</div>
-                                <div class="item-category">Dairy</div>
-                            </div>
-                        </div>
-                        <div class="item-details">
-                            <div class="item-quantity">1 gallon</div>
-                            <div class="item-expiry">Expires: August 10, 2025</div>
-                        </div>
-                        <div class="item-actions">
-                            <button class="btn btn-small btn-secondary" onclick="editInventoryItem(this)">Edit</button>
-                            <button class="btn btn-small btn-secondary" onclick="deleteInventoryItem(this)">Delete</button>
-                        </div>
-                    </div>
-
-                    <div class="inventory-item expired">
-                        <div class="item-header">
-                            <div>
-                                <div class="item-name">Yogurt</div>
-                                <div class="item-category">Dairy</div>
-                            </div>
-                        </div>
-                        <div class="item-details">
-                            <div class="item-quantity">4 cups</div>
-                            <div class="item-expiry">Expired: July 25, 2025</div>
-                        </div>
-                        <div class="item-actions">
-                            <button class="btn btn-small btn-secondary" onclick="editInventoryItem(this)">Edit</button>
-                            <button class="btn btn-small btn-secondary" onclick="deleteInventoryItem(this)">Delete</button>
-                        </div>
-                    </div>
-
-                    <div class="inventory-item">
-                        <div class="item-header">
-                            <div>
-                                <div class="item-name">Rice</div>
-                                <div class="item-category">Grains</div>
-                            </div>
-                        </div>
-                        <div class="item-details">
-                            <div class="item-quantity">5 lbs</div>
-                            <div class="item-expiry">Expires: December 15, 2025</div>
-                        </div>
-                        <div class="item-actions">
-                            <button class="btn btn-small btn-secondary" onclick="editInventoryItem(this)">Edit</button>
-                            <button class="btn btn-small btn-secondary" onclick="deleteInventoryItem(this)">Delete</button>
-                        </div>
-                    </div>
-
-                    <div class="inventory-item">
-                        <div class="item-header">
-                            <div>
-                                <div class="item-name">Tomatoes</div>
-                                <div class="item-category">Vegetables</div>
-                            </div>
-                        </div>
-                        <div class="item-details">
-                            <div class="item-quantity">6 pieces</div>
-                            <div class="item-expiry">Expires: August 2, 2025</div>
-                        </div>
-                        <div class="item-actions">
-                            <button class="btn btn-small btn-secondary" onclick="editInventoryItem(this)">Edit</button>
-                            <button class="btn btn-small btn-secondary" onclick="deleteInventoryItem(this)">Delete</button>
-                        </div>
-                    </div>
-                    
-                    <!-- Fixed Low Stock Item -->
-                    <div class="inventory-item low-stock">
-                        <div class="item-header">
-                            <div>
-                                <div class="item-name">Pasta</div>
-                                <div class="item-category">Grains</div>
-                            </div>
-                        </div>
-                        <div class="item-details">
-                            <div class="item-quantity">1 box remaining</div>
-                            <div class="item-expiry">Expires: November 20, 2025</div>
-                        </div>
-                        <div class="item-actions">
-                            <button class="btn btn-small btn-secondary" onclick="editInventoryItem(this)">Edit</button>
-                            <button class="btn btn-small btn-secondary" onclick="deleteInventoryItem(this)">Delete</button>
-                        </div>
-                    </div>
-                </div>
+                <div class="inventory-grid"></div>
             </div>
 
             <!-- Recipes Page -->
             <div id="recipes" class="page">
                 <div class="page-header">
-                    <h1 class="page-title">Recipes</h1>
-                    <p class="page-subtitle">Discover delicious meals with your ingredients</p>
+                    <h1 class="page-title">Recipe Collection</h1>
+                    <p class="page-subtitle">Discover delicious meals</p>
                 </div>
 
-                <!-- Recipe Filters -->
-                <div class="filters">
-                    <select class="filter-select">
-                        <option value="all">All Cuisines</option>
-                        <option value="italian">Italian</option>
-                        <option value="asian">Asian</option>
-                        <option value="mexican">Mexican</option>
-                        <option value="american">American</option>
-                    </select>
-                    <select class="filter-select">
-                        <option value="all">All Diets</option>
-                        <option value="vegetarian">Vegetarian</option>
-                        <option value="vegan">Vegan</option>
-                        <option value="gluten-free">Gluten Free</option>
-                        <option value="keto">Keto</option>
-                    </select>
-                    <select class="filter-select">
-                        <option value="all">Cooking Time</option>
-                        <option value="quick">< 30 minutes</option>
-                        <option value="medium">30-60 minutes</option>
-                        <option value="long">> 60 minutes</option>
-                    </select>
-                </div>
-
-                <!-- Recipe Grid -->
                 <div class="recipe-grid">
                     <div class="recipe-card">
-                        <div class="recipe-image">
-                            <i class="fas fa-utensils"></i>
-                        </div>
-                        <div class="recipe-content">
+                        <div class="recipe-image" style="background: linear-gradient(45deg, #ff6b6b, #ee5a24); height: 200px; border-radius: 12px 12px 0 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem;"><i class="fas fa-utensils"></i></div>
+                        <div class="recipe-content" style="padding: 1.5rem;">
                             <h3 class="recipe-title">Spaghetti Carbonara</h3>
-                            <div class="recipe-meta">
-                                <span><i class="fas fa-clock"></i> 25 mins</span>
+                            <p class="recipe-description">Classic Italian pasta dish with eggs, cheese, and pancetta</p>
+                            <div class="recipe-meta" style="display: flex; justify-content: space-between; margin: 1rem 0; color: #666; font-size: 0.9rem;">
+                                <span><i class="fas fa-clock"></i> 20 mins</span>
                                 <span><i class="fas fa-users"></i> 4 servings</span>
                             </div>
-                            <div class="recipe-ingredients">
-                                Uses: Pasta, Eggs, Cheese, Bacon
-                            </div>
-                            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                                <button class="btn btn-small btn-primary">Add to Plan</button>
-                                <button class="btn btn-small btn-secondary">Save</button>
+                            <div class="recipe-actions" style="display: flex; gap: 0.5rem;">
+                                <button class="btn btn-primary" onclick="selectRecipeForMeal('Spaghetti Carbonara')">Add to Plan</button>
+                                <button class="btn btn-secondary">Save</button>
                             </div>
                         </div>
                     </div>
 
                     <div class="recipe-card">
-                        <div class="recipe-image">
-                            <i class="fas fa-leaf"></i>
+                        <div class="recipe-image" style="background: linear-gradient(45deg, #4ecdc4, #44a08d); height: 200px; border-radius: 12px 12px 0 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem;"><i class="fas fa-leaf"></i></div>
+                        <div class="recipe-content" style="padding: 1.5rem;">
+                            <h3 class="recipe-title">Chicken Stir Fry</h3>
+                            <p class="recipe-description">Quick and healthy stir-fried chicken with vegetables</p>
+                            <div class="recipe-meta" style="display: flex; justify-content: space-between; margin: 1rem 0; color: #666; font-size: 0.9rem;">
+                                <span><i class="fas fa-clock"></i> 15 mins</span>
+                                <span><i class="fas fa-users"></i> 3 servings</span>
+                            </div>
+                            <div class="recipe-actions" style="display: flex; gap: 0.5rem;">
+                                <button class="btn btn-primary" onclick="selectRecipeForMeal('Chicken Stir Fry')">Add to Plan</button>
+                                <button class="btn btn-secondary">Save</button>
+                            </div>
                         </div>
-                        <div class="recipe-content">
-                            <h3 class="recipe-title">Pasta Primavera</h3>
-                            <div class="recipe-meta">
+                    </div>
+
+                    <div class="recipe-card">
+                        <div class="recipe-image" style="background: linear-gradient(45deg, #ffa726, #ff7043); height: 200px; border-radius: 12px 12px 0 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem;"><i class="fas fa-fish"></i></div>
+                        <div class="recipe-content" style="padding: 1.5rem;">
+                            <h3 class="recipe-title">Grilled Salmon</h3>
+                            <p class="recipe-description">Fresh salmon with herbs and lemon</p>
+                            <div class="recipe-meta" style="display: flex; justify-content: space-between; margin: 1rem 0; color: #666; font-size: 0.9rem;">
+                                <span><i class="fas fa-clock"></i> 25 mins</span>
+                                <span><i class="fas fa-users"></i> 2 servings</span>
+                            </div>
+                            <div class="recipe-actions" style="display: flex; gap: 0.5rem;">
+                                <button class="btn btn-primary" onclick="selectRecipeForMeal('Grilled Salmon')">Add to Plan</button>
+                                <button class="btn btn-secondary">Save</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="recipe-card">
+                        <div class="recipe-image" style="background: linear-gradient(45deg, #ab47bc, #8e24aa); height: 200px; border-radius: 12px 12px 0 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem;"><i class="fas fa-seedling"></i></div>
+                        <div class="recipe-content" style="padding: 1.5rem;">
+                            <h3 class="recipe-title">Vegetable Curry</h3>
+                            <p class="recipe-description">Spiced vegetable curry with coconut milk</p>
+                            <div class="recipe-meta" style="display: flex; justify-content: space-between; margin: 1rem 0; color: #666; font-size: 0.9rem;">
                                 <span><i class="fas fa-clock"></i> 30 mins</span>
                                 <span><i class="fas fa-users"></i> 4 servings</span>
                             </div>
-                            <div class="recipe-ingredients">
-                                Uses: Pasta, Mixed Vegetables, Olive Oil
-                            </div>
-                            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                                <button class="btn btn-small btn-primary">Add to Plan</button>
-                                <button class="btn btn-small btn-secondary">Save</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="recipe-card">
-                        <div class="recipe-image">
-                            <i class="fas fa-pepper-hot"></i>
-                        </div>
-                        <div class="recipe-content">
-                            <h3 class="recipe-title">Spicy Chicken Tacos</h3>
-                            <div class="recipe-meta">
-                                <span><i class="fas fa-clock"></i> 20 mins</span>
-                                <span><i class="fas fa-users"></i> 3 servings</span>
-                            </div>
-                            <div class="recipe-ingredients">
-                                Uses: Chicken, Tortillas, Spices, Vegetables
-                            </div>
-                            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                                <button class="btn btn-small btn-primary">Add to Plan</button>
-                                <button class="btn btn-small btn-secondary">Save</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="recipe-card">
-                        <div class="recipe-image">
-                            <i class="fas fa-fish"></i>
-                        </div>
-                        <div class="recipe-content">
-                            <h3 class="recipe-title">Lemon Herb Salmon</h3>
-                            <div class="recipe-meta">
-                                <span><i class="fas fa-clock"></i> 15 mins</span>
-                                <span><i class="fas fa-users"></i> 2 servings</span>
-                            </div>
-                            <div class="recipe-ingredients">
-                                Uses: Salmon, Lemon, Herbs, Olive Oil
-                            </div>
-                            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                                <button class="btn btn-small btn-primary">Add to Plan</button>
-                                <button class="btn btn-small btn-secondary">Save</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="recipe-card">
-                        <div class="recipe-image">
-                            <i class="fas fa-bread-slice"></i>
-                        </div>
-                        <div class="recipe-content">
-                            <h3 class="recipe-title">Tomato Basil Soup</h3>
-                            <div class="recipe-meta">
-                                <span><i class="fas fa-clock"></i> 35 mins</span>
-                                <span><i class="fas fa-users"></i> 4 servings</span>
-                            </div>
-                            <div class="recipe-ingredients">
-                                Uses: Tomatoes, Basil, Cream, Onions
-                            </div>
-                            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                                <button class="btn btn-small btn-primary">Add to Plan</button>
-                                <button class="btn btn-small btn-secondary">Save</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="recipe-card">
-                        <div class="recipe-image">
-                            <i class="fas fa-cheese"></i>
-                        </div>
-                        <div class="recipe-content">
-                            <h3 class="recipe-title">Mushroom Risotto</h3>
-                            <div class="recipe-meta">
-                                <span><i class="fas fa-clock"></i> 45 mins</span>
-                                <span><i class="fas fa-users"></i> 4 servings</span>
-                            </div>
-                            <div class="recipe-ingredients">
-                                Uses: Arborio Rice, Mushrooms, Stock, Cheese
-                            </div>
-                            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                                <button class="btn btn-small btn-primary">Add to Plan</button>
-                                <button class="btn btn-small btn-secondary">Save</button>
+                            <div class="recipe-actions" style="display: flex; gap: 0.5rem;">
+                                <button class="btn btn-primary" onclick="selectRecipeForMeal('Vegetable Curry')">Add to Plan</button>
+                                <button class="btn btn-secondary">Save</button>
                             </div>
                         </div>
                     </div>
@@ -495,684 +192,306 @@
                     <p class="page-subtitle">Plan your weekly meals</p>
                 </div>
 
-                <div class="meal-planner">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h3>Week of July 27 - August 2, 2025</h3>
-                        <button class="btn btn-primary" onclick="exportMealPlan()">
-                            <i class="fas fa-download"></i> Export Plan
-                        </button>
-                    </div>
-
-                    <div class="calendar-grid">
-                        <div class="day-column">
-                            <div class="day-header">Monday</div>
-                            <div class="meal-slot filled">
-                                <div>
-                                    <strong>Breakfast</strong><br>
-                                    Oatmeal with Berries
-                                </div>
-                            </div>
-                            <div class="meal-slot filled">
-                                <div>
-                                    <strong>Lunch</strong><br>
-                                    Caesar Salad
-                                </div>
-                            </div>
-                            <div class="meal-slot">
-                                <div>
-                                    <i class="fas fa-plus"></i><br>
-                                    Add Dinner
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="day-column">
-                            <div class="day-header">Tuesday</div>
-                            <div class="meal-slot">
-                                <div>
-                                    <i class="fas fa-plus"></i><br>
-                                    Add Breakfast
-                                </div>
-                            </div>
-                            <div class="meal-slot filled">
-                                <div>
-                                    <strong>Lunch</strong><br>
-                                    Chicken Sandwich
-                                </div>
-                            </div>
-                            <div class="meal-slot filled">
-                                <div>
-                                    <strong>Dinner</strong><br>
-                                    Spaghetti Carbonara
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="day-column">
-                            <div class="day-header">Wednesday</div>
-                            <div class="meal-slot filled">
-                                <div>
-                                    <strong>Breakfast</strong><br>
-                                    Greek Yogurt
-                                </div>
-                            </div>
-                            <div class="meal-slot">
-                                <div>
-                                    <i class="fas fa-plus"></i><br>
-                                    Add Lunch
-                                </div>
-                            </div>
-                            <div class="meal-slot">
-                                <div>
-                                    <i class="fas fa-plus"></i><br>
-                                    Add Dinner
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="day-column">
-                            <div class="day-header">Thursday</div>
-                            <div class="meal-slot">
-                                <div>
-                                    <i class="fas fa-plus"></i><br>
-                                    Add Breakfast
-                                </div>
-                            </div>
-                            <div class="meal-slot">
-                                <div>
-                                    <i class="fas fa-plus"></i><br>
-                                    Add Lunch
-                                </div>
-                            </div>
-                            <div class="meal-slot filled">
-                                <div>
-                                    <strong>Dinner</strong><br>
-                                    Chicken Tacos
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="day-column">
-                            <div class="day-header">Friday</div>
-                            <div class="meal-slot">
-                                <div>
-                                    <i class="fas fa-plus"></i><br>
-                                    Add Breakfast
-                                </div>
-                            </div>
-                            <div class="meal-slot filled">
-                                <div>
-                                    <strong>Lunch</strong><br>
-                                    Tomato Soup
-                                </div>
-                            </div>
-                            <div class="meal-slot">
-                                <div>
-                                    <i class="fas fa-plus"></i><br>
-                                    Add Dinner
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="day-column">
-                            <div class="day-header">Saturday</div>
-                            <div class="meal-slot">
-                                <div>
-                                    <i class="fas fa-plus"></i><br>
-                                    Add Breakfast
-                                </div>
-                            </div>
-                            <div class="meal-slot">
-                                <div>
-                                    <i class="fas fa-plus"></i><br>
-                                    Add Lunch
-                                </div>
-                            </div>
-                            <div class="meal-slot filled">
-                                <div>
-                                    <strong>Dinner</strong><br>
-                                    Lemon Salmon
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="day-column">
-                            <div class="day-header">Sunday</div>
-                            <div class="meal-slot">
-                                <div>
-                                    <i class="fas fa-plus"></i><br>
-                                    Add Breakfast
-                                </div>
-                            </div>
-                            <div class="meal-slot">
-                                <div>
-                                    <i class="fas fa-plus"></i><br>
-                                    Add Lunch
-                                </div>
-                            </div>
-                            <div class="meal-slot">
-                                <div>
-                                    <i class="fas fa-plus"></i><br>
-                                    Add Dinner
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="openExportMealPlanModal()"><i class="fas fa-download"></i>Export Plan</button>
+                    <button class="btn btn-secondary" onclick="showPage('recipes')"><i class="fas fa-search"></i>Browse Recipes</button>
                 </div>
+
+                <div class="meal-plan-grid"></div>
             </div>
 
             <!-- Grocery List Page -->
             <div id="grocery-list" class="page">
                 <div class="page-header">
                     <h1 class="page-title">Grocery List</h1>
-                    <p class="page-subtitle">Items needed for your meal plan</p>
+                    <p class="page-subtitle">Your shopping companion</p>
                 </div>
 
-                <div class="card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
-                        <h3>Shopping List - Week of July 27</h3>
-                        <div style="display: flex; gap: 1rem;">
-                            <button class="btn btn-secondary" onclick="printGroceryList()">
-                                <i class="fas fa-print"></i> Print List
-                            </button>
-                            <button class="btn btn-primary" onclick="downloadGroceryList()">
-                                <i class="fas fa-download"></i> Download
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="grocery-list">
-                        <div class="grocery-item">
-                            <input type="checkbox" class="grocery-checkbox">
-                            <div style="flex: 1;">
-                                <strong>Milk</strong>
-                                <div style="font-size: 0.9rem; color: #666;">1 gallon - Dairy</div>
-                            </div>
-                            <button class="btn btn-small btn-secondary" onclick="removeGroceryItem(this)">Remove</button>
-                        </div>
-
-                        <div class="grocery-item completed">
-                            <input type="checkbox" class="grocery-checkbox" checked>
-                            <div style="flex: 1;">
-                                <strong>Eggs</strong>
-                                <div style="font-size: 0.9rem; color: #666;">1 dozen - Dairy</div>
-                            </div>
-                            <button class="btn btn-small btn-secondary" onclick="removeGroceryItem(this)">Remove</button>
-                        </div>
-
-                        <div class="grocery-item">
-                            <input type="checkbox" class="grocery-checkbox">
-                            <div style="flex: 1;">
-                                <strong>Chicken Breast</strong>
-                                <div style="font-size: 0.9rem; color: #666;">2 lbs - Meat</div>
-                            </div>
-                            <button class="btn btn-small btn-secondary" onclick="removeGroceryItem(this)">Remove</button>
-                        </div>
-
-                        <div class="grocery-item">
-                            <input type="checkbox" class="grocery-checkbox">
-                            <div style="flex: 1;">
-                                <strong>Mixed Vegetables</strong>
-                                <div style="font-size: 0.9rem; color: #666;">1 bag - Frozen</div>
-                            </div>
-                            <button class="btn btn-small btn-secondary" onclick="removeGroceryItem(this)">Remove</button>
-                        </div>
-
-                        <div class="grocery-item">
-                            <input type="checkbox" class="grocery-checkbox">
-                            <div style="flex: 1;">
-                                <strong>Pasta</strong>
-                                <div style="font-size: 0.9rem; color: #666;">1 box - Grains</div>
-                            </div>
-                            <button class="btn btn-small btn-secondary" onclick="removeGroceryItem(this)">Remove</button>
-                        </div>
-
-                        <div class="grocery-item">
-                            <input type="checkbox" class="grocery-checkbox">
-                            <div style="flex: 1;">
-                                <strong>Salmon Fillet</strong>
-                                <div style="font-size: 0.9rem; color: #666;">1 lb - Seafood</div>
-                            </div>
-                            <button class="btn btn-small btn-secondary" onclick="removeGroceryItem(this)">Remove</button>
-                        </div>
-
-                        <div class="grocery-item">
-                            <input type="checkbox" class="grocery-checkbox">
-                            <div style="flex: 1;">
-                                <strong>Fresh Basil</strong>
-                                <div style="font-size: 0.9rem; color: #666;">1 bunch - Herbs</div>
-                            </div>
-                            <button class="btn btn-small btn-secondary" onclick="removeGroceryItem(this)">Remove</button>
-                        </div>
-
-                        <div class="grocery-item">
-                            <input type="checkbox" class="grocery-checkbox">
-                            <div style="flex: 1;">
-                                <strong>Arborio Rice</strong>
-                                <div style="font-size: 0.9rem; color: #666;">1 bag - Grains</div>
-                            </div>
-                            <button class="btn btn-small btn-secondary" onclick="removeGroceryItem(this)">Remove</button>
-                        </div>
-                    </div>
-
-                    <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid rgba(0, 0, 0, 0.1);">
-                        <div style="display: flex; gap: 1rem; align-items: center;">
-                            <input type="text" placeholder="Add custom item..." style="flex: 1; padding: 0.8rem; border: 1px solid rgba(0, 0, 0, 0.1); border-radius: 8px;" id="customItemInput">
-                            <button class="btn btn-primary" onclick="addCustomItem()">Add Item</button>
-                        </div>
-                    </div>
+                <div class="grocery-controls">
+                    <input type="text" placeholder="Quick add item..." class="form-input" id="customItemInput" style="max-width: 300px;">
+                    <button class="btn btn-secondary" onclick="addCustomItem()"><i class="fas fa-plus"></i>Quick Add</button>
+                    <button class="btn btn-primary" onclick="openAddGroceryItemModal()"><i class="fas fa-plus-circle"></i>Add Detailed Item</button>
+                    <button class="btn btn-secondary" onclick="downloadGroceryList()"><i class="fas fa-download"></i>Download</button>
+                    <button class="btn btn-secondary" onclick="printGroceryList()"><i class="fas fa-print"></i>Print</button>
                 </div>
+
+                <div class="grocery-list"></div>
             </div>
 
             <!-- Settings Page -->
             <div id="settings" class="page">
                 <div class="page-header">
                     <h1 class="page-title">Settings</h1>
-                    <p class="page-subtitle">Customize your Smart Pantry experience</p>
+                    <p class="page-subtitle">Customize your experience</p>
                 </div>
 
-                <div class="card-grid">
+                <div class="settings-grid">
                     <div class="card">
-                        <div class="settings-section">
-                            <h3 class="settings-title">Dietary Preferences</h3>
+                        <div class="card-header"><h2>Notifications</h2></div>
+                        <div class="card-content">
                             <div class="setting-item">
-                                <div>
-                                    <strong>Vegetarian</strong>
-                                    <div style="font-size: 0.9rem; color: #666;">Filter vegetarian recipes</div>
-                                </div>
+                                <div><strong>Expiry Alerts</strong><p>Get notified when items are about to expire</p></div>
                                 <div class="toggle" onclick="toggleSetting(this)"></div>
                             </div>
                             <div class="setting-item">
-                                <div>
-                                    <strong>Gluten Free</strong>
-                                    <div style="font-size: 0.9rem; color: #666;">Avoid gluten-containing items</div>
-                                </div>
-                                <div class="toggle" onclick="toggleSetting(this)"></div>
-                            </div>
-                            <div class="setting-item">
-                                <div>
-                                    <strong>Dairy Free</strong>
-                                    <div style="font-size: 0.9rem; color: #666;">Exclude dairy products</div>
-                                </div>
+                                <div><strong>Low Stock Alerts</strong><p>Get notified when items are running low</p></div>
                                 <div class="toggle" onclick="toggleSetting(this)"></div>
                             </div>
                         </div>
                     </div>
 
                     <div class="card">
-                        <div class="settings-section">
-                            <h3 class="settings-title">Notifications</h3>
-                            <div class="setting-item">
-                                <div>
-                                    <strong>Expiry Alerts</strong>
-                                    <div style="font-size: 0.9rem; color: #666;">Get notified about expiring items</div>
-                                </div>
-                                <div class="toggle active" onclick="toggleSetting(this)"></div>
-                            </div>
-                            <div class="setting-item">
-                                <div>
-                                    <strong>Low Stock Alerts</strong>
-                                    <div style="font-size: 0.9rem; color: #666;">Alert when items are running low</div>
-                                </div>
-                                <div class="toggle active" onclick="toggleSetting(this)"></div>
-                            </div>
-                            <div class="setting-item">
-                                <div>
-                                    <strong>Recipe Suggestions</strong>
-                                    <div style="font-size: 0.9rem; color: #666;">Get daily recipe recommendations</div>
-                                </div>
-                                <div class="toggle active" onclick="toggleSetting(this)"></div>
+                        <div class="card-header"><h2>Data Management</h2></div>
+                        <div class="card-content">
+                            <div class="action-buttons">
+                                <button class="btn btn-secondary" onclick="exportData()"><i class="fas fa-download"></i>Export Data</button>
+                                <button class="btn btn-secondary" onclick="importData()"><i class="fas fa-upload"></i>Import Data</button>
+                                <button class="btn btn-danger" onclick="resetApp()"><i class="fas fa-trash"></i>Reset App</button>
+                                <button class="btn btn-danger" onclick="deleteAccount()"><i class="fas fa-user-times"></i>Delete Account</button>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="settings-section">
-                            <h3 class="settings-title">Preferred Cuisines</h3>
-                            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                                <button class="btn btn-small btn-primary">Italian</button>
-                                <button class="btn btn-small btn-secondary">Asian</button>
-                                <button class="btn btn-small btn-primary">Mexican</button>
-                                <button class="btn btn-small btn-secondary">American</button>
-                                <button class="btn btn-small btn-secondary">Indian</button>
-                                <button class="btn btn-small btn-primary">Mediterranean</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="settings-section">
-                            <h3 class="settings-title">Smart Device Integration</h3>
-                            <div class="setting-item">
-                                <div>
-                                    <strong>Smart Refrigerator</strong>
-                                    <div style="font-size: 0.9rem; color: #666;">Sync with your smart fridge</div>
-                                </div>
-                                <div class="toggle" onclick="toggleSetting(this)"></div>
-                            </div>
-                            <div class="setting-item">
-                                <div>
-                                    <strong>Voice Assistant</strong>
-                                    <div style="font-size: 0.9rem; color: #666;">Enable voice commands</div>
-                                </div>
-                                <div class="toggle" onclick="toggleSetting(this)"></div>
-                            </div>
-                            <div class="setting-item">
-                                <div>
-                                    <strong>Shopping Apps</strong>
-                                    <div style="font-size: 0.9rem; color: #666;">Connect to grocery delivery services</div>
-                                </div>
-                                <div class="toggle active" onclick="toggleSetting(this)"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <h3>Account & Data</h3>
-                    <div style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
-                        <button class="btn btn-secondary">Export Data</button>
-                        <button class="btn btn-secondary">Import Data</button>
-                        <button class="btn btn-secondary">Reset App</button>
-                        <button class="btn btn-secondary" style="color: #dc3545; border-color: #dc3545;">Delete Account</button>
                     </div>
                 </div>
             </div>
         </main>
+    </div>
 
-        <!-- Add Item Modal -->
-        <div id="addItemModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>Add New Item</h3>
-                    <button class="close-modal" onclick="closeAddItemModal()">&times;</button>
+    <!-- Authentication Modal -->
+    <div id="authModal" class="modal active" style="display: flex;">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2 class="modal-title">Welcome to Smart Pantry</h2>
+            </div>
+
+            <div class="auth-toggle">
+                <div class="toggle-container">
+                    <button id="loginToggle" class="toggle-btn active" onclick="switchToLogin()">Login</button>
+                    <button id="registerToggle" class="toggle-btn" onclick="switchToRegister()">Register</button>
+                    <div class="toggle-slider"></div>
                 </div>
-                <form id="addItemForm">
-                    <div class="form-group">
-                        <label class="form-label">Item Name</label>
-                        <input type="text" class="form-input" placeholder="Enter item name" id="itemName" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Category</label>
-                        <select class="form-input" id="itemCategory" required>
-                            <option value="">Select category</option>
-                            <option value="dairy">Dairy</option>
-                            <option value="meat">Meat</option>
-                            <option value="vegetables">Vegetables</option>
-                            <option value="fruits">Fruits</option>
-                            <option value="grains">Grains</option>
-                            <option value="condiments">Condiments</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Quantity</label>
-                        <input type="text" class="form-input" placeholder="e.g., 2 cups, 1 lb" id="itemQuantity" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Expiry Date</label>
-                        <input type="date" class="form-input" id="itemExpiry" required>
-                    </div>
-                    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-                        <button type="button" class="btn btn-secondary" onclick="closeAddItemModal()">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Add Item</button>
-                    </div>
-                </form>
+            </div>
+
+            <form id="loginForm" class="auth-form active">
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" id="loginEmail" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" id="loginPassword" class="form-input" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+            </form>
+
+            <form id="registerForm" class="auth-form">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" id="registerName" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" id="registerEmail" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" id="registerPassword" class="form-input" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Register</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Item Modal -->
+    <div id="addItemModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add New Item</h2>
+                <button class="close-btn" onclick="closeAddItemModal()">&times;</button>
+            </div>
+            <form id="addItemForm">
+                <div class="form-group">
+                    <label class="form-label">Item Name</label>
+                    <input type="text" id="itemName" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select id="itemCategory" class="form-select" required>
+                        <option value="">Select Category</option>
+                        <option value="dairy">Dairy</option>
+                        <option value="meat">Meat</option>
+                        <option value="vegetables">Vegetables</option>
+                        <option value="fruits">Fruits</option>
+                        <option value="grains">Grains</option>
+                        <option value="condiments">Condiments</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Quantity</label>
+                    <input type="text" id="itemQuantity" class="form-input" placeholder="e.g., 2 lbs, 1 gallon" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Expiry Date</label>
+                    <input type="date" id="itemExpiry" class="form-input" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Add Item</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Item Modal -->
+    <div id="editItemModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Edit Item</h2>
+                <button class="close-btn" onclick="closeEditItemModal()">&times;</button>
+            </div>
+            <form id="editItemForm">
+                <div class="form-group">
+                    <label class="form-label">Item Name</label>
+                    <input type="text" id="editItemName" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select id="editItemCategory" class="form-select" required>
+                        <option value="dairy">Dairy</option>
+                        <option value="meat">Meat</option>
+                        <option value="vegetables">Vegetables</option>
+                        <option value="fruits">Fruits</option>
+                        <option value="grains">Grains</option>
+                        <option value="condiments">Condiments</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Quantity</label>
+                    <input type="text" id="editItemQuantity" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Expiry Date</label>
+                    <input type="date" id="editItemExpiry" class="form-input" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Recipe Selection Modal -->
+    <div id="recipeSelectionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Select Recipe</h2>
+                <button class="close-btn" onclick="closeRecipeSelectionModal()">&times;</button>
+            </div>
+            <div id="mealSlotInfo" style="margin-bottom: 1rem; color: #666;"></div>
+            <div class="recipe-selection-list">
+                <div class="recipe-option" onclick="selectRecipeForMeal('Spaghetti Carbonara')">Spaghetti Carbonara</div>
+                <div class="recipe-option" onclick="selectRecipeForMeal('Chicken Stir Fry')">Chicken Stir Fry</div>
+                <div class="recipe-option" onclick="selectRecipeForMeal('Grilled Salmon')">Grilled Salmon</div>
+                <div class="recipe-option" onclick="selectRecipeForMeal('Vegetable Curry')">Vegetable Curry</div>
             </div>
         </div>
+    </div>
 
-        <!-- Edit Item Modal -->
-        <div id="editItemModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>Edit Item</h3>
-                    <button class="close-modal" onclick="closeEditItemModal()">&times;</button>
-                </div>
-                <form id="editItemForm">
-                    <div class="form-group">
-                        <label class="form-label">Item Name</label>
-                        <input type="text" class="form-input" id="editItemName" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Category</label>
-                        <select class="form-input" id="editItemCategory" required>
-                            <option value="dairy">Dairy</option>
-                            <option value="meat">Meat</option>
-                            <option value="vegetables">Vegetables</option>
-                            <option value="fruits">Fruits</option>
-                            <option value="grains">Grains</option>
-                            <option value="condiments">Condiments</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Quantity</label>
-                        <input type="text" class="form-input" id="editItemQuantity" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Expiry Date</label>
-                        <input type="date" class="form-input" id="editItemExpiry" required>
-                    </div>
-                    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-                        <button type="button" class="btn btn-secondary" onclick="closeEditItemModal()">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                    </div>
-                </form>
+    <!-- Export Meal Plan Modal -->
+    <div id="exportMealPlanModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Export Meal Plan</h2>
+                <button class="close-btn" onclick="closeExportMealPlanModal()">&times;</button>
             </div>
+            <div class="form-group">
+                <label class="form-label">Export Format</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="exportFormat" value="pdf" checked> PDF</label>
+                    <label><input type="radio" name="exportFormat" value="calendar"> Calendar (ICS)</label>
+                    <label><input type="radio" name="exportFormat" value="excel"> Excel (CSV)</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label><input type="checkbox"> Include grocery list</label>
+            </div>
+            <button class="btn btn-primary" onclick="downloadMealPlan()" style="width: 100%;">Export</button>
         </div>
+    </div>
 
-        <!-- Recipe Selection Modal -->
-        <div id="recipeSelectionModal" class="modal">
-            <div class="modal-content" style="max-width: 600px;">
-                <div class="modal-header">
-                    <h3>Select Recipe for Meal</h3>
-                    <button class="close-modal" onclick="closeRecipeSelectionModal()">&times;</button>
-                </div>
-                <div style="margin-bottom: 1rem;">
-                    <p id="mealSlotInfo" style="color: #666;"></p>
-                </div>
-                <div class="recipe-grid" style="grid-template-columns: 1fr;">
-                    <div class="recipe-card" onclick="selectRecipeForMeal('Spaghetti Carbonara')" style="cursor: pointer;">
-                        <div class="recipe-image">
-                            <i class="fas fa-utensils"></i>
-                        </div>
-                        <div class="recipe-content">
-                            <h4 class="recipe-title">Spaghetti Carbonara</h4>
-                            <div class="recipe-meta">
-                                <span><i class="fas fa-clock"></i> 25 mins</span>
-                                <span><i class="fas fa-users"></i> 4 servings</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="recipe-card" onclick="selectRecipeForMeal('Chicken Stir Fry')" style="cursor: pointer;">
-                        <div class="recipe-image">
-                            <i class="fas fa-pepper-hot"></i>
-                        </div>
-                        <div class="recipe-content">
-                            <h4 class="recipe-title">Chicken Stir Fry</h4>
-                            <div class="recipe-meta">
-                                <span><i class="fas fa-clock"></i> 20 mins</span>
-                                <span><i class="fas fa-users"></i> 3 servings</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="recipe-card" onclick="selectRecipeForMeal('Lemon Herb Salmon')" style="cursor: pointer;">
-                        <div class="recipe-image">
-                            <i class="fas fa-fish"></i>
-                        </div>
-                        <div class="recipe-content">
-                            <h4 class="recipe-title">Lemon Herb Salmon</h4>
-                            <div class="recipe-meta">
-                                <span><i class="fas fa-clock"></i> 15 mins</span>
-                                <span><i class="fas fa-users"></i> 2 servings</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div style="text-align: center; margin-top: 2rem;">
-                    <button class="btn btn-secondary" onclick="closeRecipeSelectionModal()">Cancel</button>
-                </div>
+    <!-- Edit Profile Modal -->
+    <div id="editProfileModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Edit Profile</h2>
+                <button class="close-btn" onclick="closeEditProfileModal()">&times;</button>
             </div>
+            <form id="editProfileForm">
+                <div style="text-align: center; margin-bottom: 1.5rem;">
+                    <div style="width: 80px; height: 80px; background: #667eea; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: white; font-size: 2rem; font-weight: bold; margin-bottom: 1rem;" id="editProfileAvatar">U</div>
+                    <button type="button" class="btn btn-secondary" onclick="changeProfilePicture()">Change Picture</button>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" id="editProfileName" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" id="editProfileEmail" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Current Password</label>
+                    <input type="password" id="editCurrentPassword" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">New Password</label>
+                    <input type="password" id="editNewPassword" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Confirm New Password</label>
+                    <input type="password" id="editConfirmPassword" class="form-input">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Update Profile</button>
+            </form>
         </div>
+    </div>
 
-        <!-- Export Meal Plan Modal -->
-        <div id="exportMealPlanModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>Export Meal Plan</h3>
-                    <button class="close-modal" onclick="closeExportMealPlanModal()">&times;</button>
-                </div>
-                <div style="padding: 1rem 0;">
-                    <h4 style="margin-bottom: 1rem;">Choose Export Format:</h4>
-                    <div style="display: flex; flex-direction: column; gap: 1rem;">
-                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                            <input type="radio" name="exportFormat" value="pdf" checked>
-                            <i class="fas fa-file-pdf" style="color: #dc3545;"></i>
-                            PDF Document
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                            <input type="radio" name="exportFormat" value="calendar">
-                            <i class="fas fa-calendar" style="color: #007bff;"></i>
-                            Calendar File (.ics)
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                            <input type="radio" name="exportFormat" value="excel">
-                            <i class="fas fa-file-excel" style="color: #28a745;"></i>
-                            Excel Spreadsheet
-                        </label>
-                    </div>
-                    <div style="margin-top: 2rem;">
-                        <label style="display: flex; align-items: center; gap: 0.5rem;">
-                            <input type="checkbox" checked>
-                            Include grocery list
-                        </label>
-                    </div>
-                </div>
-                <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-                    <button class="btn btn-secondary" onclick="closeExportMealPlanModal()">Cancel</button>
-                    <button class="btn btn-primary" onclick="downloadMealPlan()">Export</button>
-                </div>
+    <!-- Add Grocery Item Modal -->
+    <div id="addGroceryItemModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add Grocery Item</h2>
+                <button class="close-btn" onclick="closeAddGroceryItemModal()">&times;</button>
             </div>
-        </div>
-
-        <!-- Edit Profile Modal -->
-        <div id="editProfileModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>Edit Profile</h3>
-                    <button class="close-modal" onclick="closeEditProfileModal()">&times;</button>
+            <form id="addGroceryItemForm">
+                <div class="form-group">
+                    <label class="form-label">Item Name</label>
+                    <input type="text" id="groceryItemName" class="form-input" required>
                 </div>
-                <form id="editProfileForm">
-                    <div class="form-group">
-                        <label class="form-label">Profile Picture</label>
-                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                            <div style="width: 60px; height: 60px; background: #667eea; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: bold;" id="editProfileAvatar">
-                                U
-                            </div>
-                            <div>
-                                <button type="button" class="btn btn-small btn-secondary" onclick="changeProfilePicture()">Change Picture</button>
-                                <p style="font-size: 0.8rem; color: #666; margin: 0.5rem 0 0 0;">Click to upload a new profile picture</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Full Name</label>
-                        <input type="text" class="form-input" placeholder="Enter your full name" id="editProfileName" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Email Address</label>
-                        <input type="email" class="form-input" placeholder="Enter your email" id="editProfileEmail" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Current Password</label>
-                        <input type="password" class="form-input" placeholder="Enter current password" id="editCurrentPassword">
-                        <p style="font-size: 0.8rem; color: #666; margin: 0.5rem 0 0 0;">Leave blank if you don't want to change password</p>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">New Password</label>
-                        <input type="password" class="form-input" placeholder="Enter new password" id="editNewPassword">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Confirm New Password</label>
-                        <input type="password" class="form-input" placeholder="Confirm new password" id="editConfirmPassword">
-                    </div>
-                    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-                        <button type="button" class="btn btn-secondary" onclick="closeEditProfileModal()">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Authentication Modal -->
-        <div id="authModal" class="modal active">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3 id="authTitle">Welcome to Smart Pantry</h3>
+                <div class="form-group">
+                    <label class="form-label">Quantity</label>
+                    <input type="text" id="groceryItemQuantity" class="form-input" placeholder="e.g., 2 lbs, 1 gallon" required>
                 </div>
-                
-                <!-- Slide Toggle -->
-                <div class="auth-toggle">
-                    <div class="toggle-container">
-                        <button class="toggle-btn active" id="loginToggle" onclick="switchToLogin()">Sign In</button>
-                        <button class="toggle-btn" id="registerToggle" onclick="switchToRegister()">Register</button>
-                        <div class="toggle-slider" id="toggleSlider"></div>
-                    </div>
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select id="groceryItemCategory" class="form-select" required>
+                        <option value="dairy">Dairy</option>
+                        <option value="meat">Meat</option>
+                        <option value="vegetables">Vegetables</option>
+                        <option value="fruits">Fruits</option>
+                        <option value="grains">Grains</option>
+                        <option value="condiments">Condiments</option>
+                        <option value="other">Other</option>
+                    </select>
                 </div>
-
-                <div style="text-align: center; margin-bottom: 2rem;">
-                    <i class="fas fa-utensils" style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;"></i>
-                    <p id="authSubtitle" style="color: #666;">Please sign in to access your pantry</p>
+                <div class="form-group">
+                    <label class="form-label">Priority</label>
+                    <select id="groceryItemPriority" class="form-select">
+                        <option value="normal">Normal</option>
+                        <option value="urgent">Urgent</option>
+                        <option value="low">Low</option>
+                    </select>
                 </div>
-
-                <!-- Login Form -->
-                <div id="loginFormContainer" class="auth-form active">
-                    <form id="loginForm">
-                        <div class="form-group">
-                            <label class="form-label">Email</label>
-                            <input type="email" class="form-input" placeholder="Enter your email" id="loginEmail" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Password</label>
-                            <input type="password" class="form-input" placeholder="Enter your password" id="loginPassword" required>
-                        </div>
-                        <div style="display: flex; align-items: center; justify-content: flex-start; margin: 1rem 0;">
-                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                <input type="checkbox" id="rememberMe">
-                                <span style="font-size: 0.9rem;">Remember me</span>
-                            </label>
-                        </div>
-                        <button type="submit" class="btn btn-primary" style="width: 100%;">Sign In</button>
-                    </form>
+                <div class="form-group">
+                    <label class="form-label">Notes</label>
+                    <textarea id="groceryItemNotes" class="form-textarea" rows="3" placeholder="Additional notes..."></textarea>
                 </div>
-
-                <!-- Register Form -->
-                <div id="registerFormContainer" class="auth-form">
-                    <form id="registerForm">
-                        <div class="form-group">
-                            <label class="form-label">Full Name</label>
-                            <input type="text" class="form-input" placeholder="Enter your full name" id="registerName" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Email</label>
-                            <input type="email" class="form-input" placeholder="Enter your email" id="registerEmail" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Password</label>
-                            <input type="password" class="form-input" placeholder="Create a password" id="registerPassword" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Confirm Password</label>
-                            <input type="password" class="form-input" placeholder="Confirm your password" id="confirmPassword" required>
-                        </div>
-                        <div style="margin: 1rem 0;">
-                            <label style="display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer;">
-                                <input type="checkbox" id="agreeTerms" required style="margin-top: 0.2rem;">
-                                <span style="font-size: 0.9rem;">I agree to the <a href="#" style="color: #667eea;">Terms of Service</a> and <a href="#" style="color: #667eea;">Privacy Policy</a></span>
-                            </label>
-                        </div>
-                        <button type="submit" class="btn btn-primary" style="width: 100%;">Create Account</button>
-                    </form>
-                </div>
-            </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Add to List</button>
+            </form>
         </div>
     </div>
 

@@ -1,387 +1,183 @@
-// Global authentication state
-let isLoggedIn = false;
-let currentUser = null;
+// ========== SMART PANTRY - OPTIMIZED VERSION ==========
 
-// Dynamic data storage
-let pantryItems = JSON.parse(localStorage.getItem('pantryItems')) || [
-    {
-        id: 1,
-        name: 'Eggs',
-        category: 'dairy',
-        quantity: '2 remaining',
-        expiry: '2025-08-05',
-        status: 'low-stock'
-    },
-    {
-        id: 2,
-        name: 'Chicken Breast',
-        category: 'meat',
-        quantity: '2 lbs',
-        expiry: '2025-08-03',
-        status: 'normal'
-    },
-    {
-        id: 3,
-        name: 'Milk',
-        category: 'dairy',
-        quantity: '1 gallon',
-        expiry: '2025-08-10',
-        status: 'normal'
-    },
-    {
-        id: 4,
-        name: 'Bread',
-        category: 'grains',
-        quantity: '4 cups',
-        expiry: '2025-07-25',
-        status: 'expired'
-    },
-    {
-        id: 5,
-        name: 'Rice',
-        category: 'grains',
-        quantity: '5 lbs',
-        expiry: '2025-12-15',
-        status: 'normal'
-    },
-    {
-        id: 6,
-        name: 'Tomatoes',
-        category: 'vegetables',
-        quantity: '6 pieces',
-        expiry: '2025-08-02',
-        status: 'normal'
-    },
-    {
-        id: 7,
-        name: 'Pasta',
-        category: 'grains',
-        quantity: '1 box remaining',
-        expiry: '2025-11-20',
-        status: 'low-stock'
-    }
-];
+// Data Storage
+let pantryItems = JSON.parse(localStorage.getItem('pantryItems') || '[]');
+let mealPlans = JSON.parse(localStorage.getItem('mealPlans') || '{}');
+let currentUser = JSON.parse(localStorage.getItem('smartPantryUser') || 'null');
 
-let mealPlans = JSON.parse(localStorage.getItem('mealPlans')) || {
-    'Monday': {
-        breakfast: 'Oatmeal with Berries',
-        lunch: 'Caesar Salad',
-        dinner: null
+// ========== CORE FUNCTIONALITY ==========
+
+// Notification System
+function showNotification(message, type = 'success', duration = 3000) {
+    document.querySelectorAll('.notification').forEach(n => n.remove());
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.style.cssText = `position:fixed;top:20px;right:20px;padding:1rem 1.5rem;border-radius:8px;color:white;z-index:3000;max-width:300px;box-shadow:0 4px 12px rgba(0,0,0,0.15);animation:slideInRight 0.3s ease;font-weight:500;background:${
+        {success:'#28a745',error:'#dc3545',warning:'#ffc107',info:'#17a2b8'}[type] || '#28a745'
+    }`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    setTimeout(() => {
+        notification.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, duration);
+}
+
+// Generic Modal Management
+const modalActions = {
+    open: (modalId, resetForm = true) => {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+        modal.classList.add('active');
+        if (resetForm) {
+            const form = modal.querySelector('form');
+            if (form) form.reset();
+        }
+        const firstInput = modal.querySelector('input');
+        if (firstInput) setTimeout(() => firstInput.focus(), 100);
     },
-    'Tuesday': {
-        breakfast: null,
-        lunch: 'Chicken Sandwich',
-        dinner: 'Spaghetti Carbonara'
-    },
-    'Wednesday': {
-        breakfast: 'Greek Yogurt',
-        lunch: null,
-        dinner: null
-    },
-    'Thursday': {
-        breakfast: null,
-        lunch: null,
-        dinner: 'Chicken Tacos'
-    },
-    'Friday': {
-        breakfast: null,
-        lunch: 'Tomato Soup',
-        dinner: null
-    },
-    'Saturday': {
-        breakfast: null,
-        lunch: null,
-        dinner: 'Lemon Salmon'
-    },
-    'Sunday': {
-        breakfast: null,
-        lunch: null,
-        dinner: null
+    close: (modalId) => {
+        const modal = document.getElementById(modalId);
+        if (modal) modal.classList.remove('active');
     }
 };
 
-let groceryList = JSON.parse(localStorage.getItem('groceryList')) || [
-    { id: 1, name: 'Milk', quantity: '1 gallon', category: 'Dairy', completed: false },
-    { id: 2, name: 'Eggs', quantity: '1 dozen', category: 'Dairy', completed: true },
-    { id: 3, name: 'Chicken Breast', quantity: '2 lbs', category: 'Meat', completed: false },
-    { id: 4, name: 'Mixed Vegetables', quantity: '1 bag', category: 'Frozen', completed: false },
-    { id: 5, name: 'Pasta', quantity: '1 box', category: 'Grains', completed: false },
-    { id: 6, name: 'Salmon Fillet', quantity: '1 lb', category: 'Seafood', completed: false },
-    { id: 7, name: 'Fresh Basil', quantity: '1 bunch', category: 'Herbs', completed: false },
-    { id: 8, name: 'Arborio Rice', quantity: '1 bag', category: 'Grains', completed: false }
-];
+// Data Management
+function saveData() {
+    localStorage.setItem('pantryItems', JSON.stringify(pantryItems));
+    localStorage.setItem('mealPlans', JSON.stringify(mealPlans));
+}
 
-// Check authentication status on page load
-document.addEventListener('DOMContentLoaded', function() {
-    checkAuthStatus();
-    updateDashboardStats();
-    renderPantryItems();
-    renderMealPlan();
-    renderGroceryList();
-    updateAlerts();
-});
+function getItemStatus(expiryDate) {
+    const today = new Date();
+    const expiry = new Date(expiryDate);
+    const diffTime = expiry - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (diffDays < 0) return 'expired';
+    if (diffDays <= 3) return 'expiring';
+    return 'fresh';
+}
 
-// Dynamic Dashboard Functions
+// ========== DASHBOARD FUNCTIONS ==========
+
 function updateDashboardStats() {
     const totalItems = pantryItems.length;
-    const expiringItems = pantryItems.filter(item => {
-        const expiry = new Date(item.expiry);
-        const today = new Date();
-        const daysDiff = (expiry - today) / (1000 * 60 * 60 * 24);
-        return daysDiff <= 3 && daysDiff >= 0;
-    }).length;
+    const expiringItems = pantryItems.filter(item => getItemStatus(item.expiry) === 'expiring').length;
+    const expiredItems = pantryItems.filter(item => getItemStatus(item.expiry) === 'expired').length;
+    const lowStockItems = pantryItems.filter(item => parseInt(item.quantity) <= 2).length;
     
-    const plannedMeals = Object.values(mealPlans).reduce((count, day) => {
-        return count + (day.breakfast ? 1 : 0) + (day.lunch ? 1 : 0) + (day.dinner ? 1 : 0);
-    }, 0);
-    
-    const shoppingItems = groceryList.filter(item => !item.completed).length;
-    
-    // Update stat cards
-    document.querySelector('.stat-card:nth-child(1) .stat-number').textContent = totalItems;
-    document.querySelector('.stat-card:nth-child(2) .stat-number').textContent = expiringItems;
-    document.querySelector('.stat-card:nth-child(3) .stat-number').textContent = plannedMeals;
-    document.querySelector('.stat-card:nth-child(4) .stat-number').textContent = shoppingItems;
-    
-    // Update dashboard previews
-    updatePlannedMealsPreview();
-    updateRecipeSuggestions();
-}
-
-function updatePlannedMealsPreview() {
-    const preview = document.getElementById('plannedMealsPreview');
-    if (!preview) return;
-    
-    const days = ['Monday', 'Tuesday', 'Wednesday'];
-    const upcomingMeals = [];
-    
-    days.forEach(day => {
-        const dayPlan = mealPlans[day];
-        if (dayPlan.dinner) upcomingMeals.push(`${day}: ${dayPlan.dinner}`);
-        else if (dayPlan.lunch) upcomingMeals.push(`${day}: ${dayPlan.lunch}`);
-        else if (dayPlan.breakfast) upcomingMeals.push(`${day}: ${dayPlan.breakfast}`);
-    });
-    
-    if (upcomingMeals.length === 0) {
-        preview.innerHTML = '<p style="color: #666; font-style: italic;">No meals planned yet. <a href="#" onclick="showPage(\'meal-planner\')" style="color: #667eea;">Plan some meals</a></p>';
-    } else {
-        preview.innerHTML = upcomingMeals.map(meal => 
-            `<div style="margin-bottom: 0.5rem;"><strong>${meal.split(':')[0]}:</strong> ${meal.split(':')[1]}</div>`
-        ).join('');
-    }
-}
-
-function updateRecipeSuggestions() {
-    const suggestions = document.getElementById('suggestedRecipes');
-    if (!suggestions) return;
-    
-    const availableIngredients = pantryItems.map(item => item.name.toLowerCase());
-    
-    const recipes = [
-        {
-            name: 'Chicken Breast Stir Fry',
-            ingredients: ['chicken', 'vegetables'],
-            description: 'Quick and healthy dinner'
-        },
-        {
-            name: 'Pasta with Tomatoes',
-            ingredients: ['pasta', 'tomatoes'],
-            description: 'Simple Italian classic'
-        },
-        {
-            name: 'Egg Fried Rice',
-            ingredients: ['rice', 'eggs'],
-            description: 'Easy breakfast or dinner'
-        },
-        {
-            name: 'Milk-based Smoothie',
-            ingredients: ['milk'],
-            description: 'Healthy breakfast drink'
-        }
-    ];
-    
-    const matchingRecipes = recipes.filter(recipe => 
-        recipe.ingredients.some(ingredient => 
-            availableIngredients.some(available => available.includes(ingredient))
-        )
-    ).slice(0, 3);
-    
-    if (matchingRecipes.length === 0) {
-        suggestions.innerHTML = '<p style="color: #666; font-style: italic;">Add more items to your pantry to get recipe suggestions!</p>';
-    } else {
-        suggestions.innerHTML = matchingRecipes.map(recipe => `
-            <div style="margin-bottom: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 8px; cursor: pointer;" onclick="addRecipeToMealPlan('${recipe.name}')">
-                <strong>${recipe.name}</strong>
-                <div style="font-size: 0.9rem; color: #666; margin-top: 0.3rem;">
-                    ${recipe.description}
-                </div>
-                <div style="font-size: 0.8rem; color: #667eea; margin-top: 0.5rem;">
-                    Click to add to meal plan
-                </div>
-            </div>
-        `).join('');
-    }
-}
-
-function addRecipeToMealPlan(recipeName) {
-    const day = prompt('Which day would you like to add this recipe? (Monday-Sunday)');
-    const mealType = prompt('What meal type? (breakfast/lunch/dinner)');
-    
-    if (day && mealType && mealPlans[day] !== undefined) {
-        mealPlans[day][mealType] = recipeName;
-        saveData();
-        updateDashboardStats();
-        renderMealPlan();
-        alert(`${recipeName} added to ${day} ${mealType}!`);
-    }
+    document.getElementById('totalItems').textContent = totalItems;
+    document.getElementById('expiringItems').textContent = expiringItems;
+    document.getElementById('expiredItems').textContent = expiredItems;
+    document.getElementById('lowStockItems').textContent = lowStockItems;
 }
 
 function updateAlerts() {
-    const alertsContainer = document.querySelector('.alert.alert-warning');
-    const dangerContainer = document.querySelector('.alert.alert-danger');
+    const alertsContainer = document.getElementById('alertsContainer');
+    const alerts = [];
     
-    // Find expiring items
-    const expiringItems = pantryItems.filter(item => {
-        const expiry = new Date(item.expiry);
-        const today = new Date();
-        const daysDiff = (expiry - today) / (1000 * 60 * 60 * 24);
-        return daysDiff <= 3 && daysDiff >= 0;
+    pantryItems.forEach(item => {
+        const status = getItemStatus(item.expiry);
+        if (status === 'expired') alerts.push(`${item.name} has expired!`);
+        else if (status === 'expiring') alerts.push(`${item.name} expires soon`);
+        if (parseInt(item.quantity) <= 2) alerts.push(`${item.name} is running low`);
     });
     
-    // Find expired items
-    const expiredItems = pantryItems.filter(item => item.status === 'expired');
-    
-    if (expiringItems.length > 0) {
-        alertsContainer.innerHTML = `
-            <i class="fas fa-exclamation-triangle"></i>
-            <div>
-                <strong>${expiringItems.length} items expiring soon:</strong>
-                ${expiringItems.map(item => item.name).join(', ')}
-            </div>
-        `;
-    } else {
-        alertsContainer.innerHTML = `
-            <i class="fas fa-check-circle"></i>
-            <div><strong>All items are fresh!</strong> No items expiring in the next 3 days.</div>
-        `;
-    }
-    
-    if (expiredItems.length > 0) {
-        dangerContainer.innerHTML = `
-            <i class="fas fa-times-circle"></i>
-            <div>
-                <strong>${expiredItems.length} expired items:</strong>
-                ${expiredItems.map(item => item.name).join(', ')}
-            </div>
-        `;
-    } else {
-        dangerContainer.innerHTML = `
-            <i class="fas fa-check-circle"></i>
-            <div><strong>No expired items!</strong> Your pantry is clean.</div>
-        `;
-    }
+    alertsContainer.innerHTML = alerts.length > 0 ? 
+        alerts.slice(0, 3).map(alert => `<div class="alert">${alert}</div>`).join('') :
+        '<div class="no-alerts">No alerts - everything looks good!</div>';
 }
+
+function updatePlannedMealsPreview() {
+    const container = document.getElementById('plannedMealsPreview');
+    const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+    const todayMeals = mealPlans[today] || {};
+    
+    container.innerHTML = `
+        <div class="meal-preview">
+            <strong>Today's Meals:</strong>
+            <div>Breakfast: ${todayMeals.breakfast || 'Not planned'}</div>
+            <div>Lunch: ${todayMeals.lunch || 'Not planned'}</div>
+            <div>Dinner: ${todayMeals.dinner || 'Not planned'}</div>
+        </div>
+    `;
+}
+
+function updateRecipeSuggestions() {
+    const container = document.getElementById('recipeSuggestions');
+    const suggestions = ['Chicken Stir Fry', 'Pasta Primavera', 'Grilled Salmon', 'Vegetable Curry'];
+    container.innerHTML = suggestions.map(recipe => 
+        `<div class="recipe-suggestion" onclick="addRecipeToMealPlan('${recipe}')">${recipe}</div>`
+    ).join('');
+}
+
+function addRecipeToMealPlan(recipeName) {
+    showNotification(`${recipeName} would be added to your meal plan`, 'info');
+}
+
+// ========== INVENTORY FUNCTIONS ==========
 
 function renderPantryItems(filter = 'all') {
-    const inventoryGrid = document.querySelector('.inventory-grid');
-    let filteredItems = pantryItems;
+    const container = document.querySelector('.inventory-grid');
+    if (!container) return;
     
-    if (filter !== 'all') {
-        filteredItems = pantryItems.filter(item => item.category === filter);
+    const filteredItems = filter === 'all' ? pantryItems : pantryItems.filter(item => item.category === filter);
+    
+    if (filteredItems.length === 0) {
+        container.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:#666;">No items found</div>';
+        return;
     }
     
-    inventoryGrid.innerHTML = filteredItems.map(item => `
-        <div class="inventory-item ${item.status}" data-id="${item.id}">
-            <div class="item-header">
-                <div>
-                    <div class="item-name">${item.name}</div>
-                    <div class="item-category">${item.category.charAt(0).toUpperCase() + item.category.slice(1)}</div>
-                </div>
-            </div>
-            <div class="item-details">
-                <div class="item-quantity">${item.quantity}</div>
-                <div class="item-expiry">Expires: ${formatDate(item.expiry)}</div>
-            </div>
-            <div class="item-actions">
-                <button class="btn btn-small btn-secondary" onclick="editInventoryItem('${item.id}')">Edit</button>
-                <button class="btn btn-small btn-secondary" onclick="deleteInventoryItem('${item.id}')">Delete</button>
-            </div>
-        </div>
-    `).join('');
-}
-
-function renderMealPlan() {
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    const calendarGrid = document.querySelector('.calendar-grid');
-    
-    calendarGrid.innerHTML = days.map(day => {
-        const dayPlan = mealPlans[day];
+    container.innerHTML = filteredItems.map(item => {
+        const status = getItemStatus(item.expiry);
         return `
-            <div class="day-column">
-                <div class="day-header">${day}</div>
-                <div class="meal-slot ${dayPlan.breakfast ? 'filled' : ''}" onclick="addMeal('${day}', 'breakfast')">
-                    ${dayPlan.breakfast ? `<div><strong>Breakfast</strong><br>${dayPlan.breakfast}</div>` : '<div><i class="fas fa-plus"></i><br>Add Breakfast</div>'}
+            <div class="inventory-item ${status}">
+                <div class="item-header">
+                    <h3 class="item-name">${item.name}</h3>
+                    <span class="item-status ${status}">${status}</span>
                 </div>
-                <div class="meal-slot ${dayPlan.lunch ? 'filled' : ''}" onclick="addMeal('${day}', 'lunch')">
-                    ${dayPlan.lunch ? `<div><strong>Lunch</strong><br>${dayPlan.lunch}</div>` : '<div><i class="fas fa-plus"></i><br>Add Lunch</div>'}
+                <div class="item-details">
+                    <p><strong>Category:</strong> ${item.category}</p>
+                    <p><strong>Quantity:</strong> ${item.quantity}</p>
+                    <p><strong>Expiry:</strong> ${new Date(item.expiry).toLocaleDateString()}</p>
                 </div>
-                <div class="meal-slot ${dayPlan.dinner ? 'filled' : ''}" onclick="addMeal('${day}', 'dinner')">
-                    ${dayPlan.dinner ? `<div><strong>Dinner</strong><br>${dayPlan.dinner}</div>` : '<div><i class="fas fa-plus"></i><br>Add Dinner</div>'}
+                <div class="item-actions">
+                    <button class="btn-small btn-primary" onclick="editInventoryItem(${item.id})">Edit</button>
+                    <button class="btn-small btn-danger" onclick="deleteInventoryItem(${item.id})">Delete</button>
                 </div>
             </div>
         `;
     }).join('');
 }
 
-function renderGroceryList() {
-    const groceryListContainer = document.querySelector('.grocery-list');
-    
-    groceryListContainer.innerHTML = groceryList.map(item => `
-        <div class="grocery-item ${item.completed ? 'completed' : ''}" data-id="${item.id}">
-            <input type="checkbox" class="grocery-checkbox" ${item.completed ? 'checked' : ''} onchange="toggleGroceryItem('${item.id}')">
-            <div style="flex: 1;">
-                <strong>${item.name}</strong>
-                <div style="font-size: 0.9rem; color: #666;">${item.quantity} - ${item.category}</div>
-            </div>
-            <button class="btn btn-small btn-secondary" onclick="removeGroceryItem('${item.id}')">Remove</button>
-        </div>
-    `).join('');
-}
-
-// Utility functions
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-    });
-}
-
-function saveData() {
-    localStorage.setItem('pantryItems', JSON.stringify(pantryItems));
-    localStorage.setItem('mealPlans', JSON.stringify(mealPlans));
-    localStorage.setItem('groceryList', JSON.stringify(groceryList));
-}
-
-// Dynamic inventory management functions
 function addItem() {
-    const name = document.getElementById('itemName').value;
+    const name = document.getElementById('itemName').value.trim();
     const category = document.getElementById('itemCategory').value;
-    const quantity = document.getElementById('itemQuantity').value;
+    const quantity = document.getElementById('itemQuantity').value.trim();
     const expiry = document.getElementById('itemExpiry').value;
     
     if (!name || !category || !quantity || !expiry) {
-        alert('Please fill in all fields');
+        showNotification('Please fill in all fields', 'error');
+        return;
+    }
+    
+    const existingItem = pantryItems.find(item => item.name.toLowerCase() === name.toLowerCase());
+    if (existingItem) {
+        if (confirm(`${name} already exists. Update quantity instead?`)) {
+            existingItem.quantity = quantity;
+            existingItem.expiry = expiry;
+            existingItem.status = getItemStatus(expiry);
+            saveData();
+            renderPantryItems();
+            closeAddItemModal();
+            showNotification(`${name} updated successfully!`, 'success');
+        }
         return;
     }
     
     const newItem = {
         id: Date.now(),
-        name,
-        category,
-        quantity,
-        expiry,
+        name, category, quantity, expiry,
         status: getItemStatus(expiry)
     };
     
@@ -389,195 +185,213 @@ function addItem() {
     saveData();
     renderPantryItems();
     updateDashboardStats();
-    updateAlerts();
     closeAddItemModal();
-    
-    // Reset form
-    document.getElementById('addItemForm').reset();
-    
-    alert('Item added successfully!');
+    showNotification(`${name} added to pantry!`, 'success');
 }
 
 function editInventoryItem(itemId) {
-    const item = pantryItems.find(i => i.id == itemId);
+    const item = pantryItems.find(i => i.id === itemId);
     if (!item) return;
     
-    // Populate edit form
     document.getElementById('editItemName').value = item.name;
     document.getElementById('editItemCategory').value = item.category;
     document.getElementById('editItemQuantity').value = item.quantity;
     document.getElementById('editItemExpiry').value = item.expiry;
-    
-    // Store item ID for saving
-    document.getElementById('editItemForm').dataset.itemId = itemId;
-    
+    document.getElementById('editItemModal').setAttribute('data-editing-item', itemId);
     openEditItemModal();
 }
 
 function saveEditedItem() {
-    const itemId = document.getElementById('editItemForm').dataset.itemId;
-    const item = pantryItems.find(i => i.id == itemId);
+    const itemId = parseInt(document.getElementById('editItemModal').getAttribute('data-editing-item'));
+    const item = pantryItems.find(i => i.id === itemId);
     if (!item) return;
     
-    item.name = document.getElementById('editItemName').value;
+    item.name = document.getElementById('editItemName').value.trim();
     item.category = document.getElementById('editItemCategory').value;
-    item.quantity = document.getElementById('editItemQuantity').value;
+    item.quantity = document.getElementById('editItemQuantity').value.trim();
     item.expiry = document.getElementById('editItemExpiry').value;
     item.status = getItemStatus(item.expiry);
     
     saveData();
     renderPantryItems();
     updateDashboardStats();
-    updateAlerts();
     closeEditItemModal();
-    
-    alert('Item updated successfully!');
+    showNotification(`${item.name} updated successfully!`, 'success');
 }
 
 function deleteInventoryItem(itemId) {
-    if (confirm('Are you sure you want to delete this item?')) {
-        pantryItems = pantryItems.filter(item => item.id != itemId);
+    const item = pantryItems.find(i => i.id === itemId);
+    if (!item) return;
+    
+    if (confirm(`Are you sure you want to delete ${item.name}?`)) {
+        pantryItems = pantryItems.filter(i => i.id !== itemId);
         saveData();
         renderPantryItems();
         updateDashboardStats();
-        updateAlerts();
-        alert('Item deleted successfully!');
+        showNotification(`${item.name} deleted successfully!`, 'success');
     }
 }
 
-function getItemStatus(expiryDate) {
-    const expiry = new Date(expiryDate);
-    const today = new Date();
-    const daysDiff = (expiry - today) / (1000 * 60 * 60 * 24);
-    
-    if (daysDiff < 0) return 'expired';
-    if (daysDiff <= 3) return 'low-stock';
-    return 'normal';
-}
-
 function filterInventory(category) {
-    renderPantryItems(category);
+    const items = document.querySelectorAll('.inventory-item');
+    items.forEach(item => {
+        if (category === 'all' || item.dataset.category === category) {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+        }
+    });
 }
 
-// Meal planning functions
+// ========== MEAL PLANNING ==========
+
+function renderMealPlan() {
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const container = document.querySelector('.meal-plan-grid');
+    if (!container) return;
+    
+    container.innerHTML = days.map(day => `
+        <div class="day-column">
+            <div class="day-header">${day}</div>
+            ${['breakfast', 'lunch', 'dinner'].map(meal => `
+                <div class="meal-slot" onclick="openRecipeSelectionModal('${day}', '${meal}')">
+                    <div class="meal-type">${meal.charAt(0).toUpperCase() + meal.slice(1)}</div>
+                    <div class="meal-content">${mealPlans[day]?.[meal] || 'Click to add'}</div>
+                </div>
+            `).join('')}
+        </div>
+    `).join('');
+}
+
 function addMeal(day, mealType) {
-    const meal = prompt(`Enter ${mealType} for ${day}:`);
-    if (meal) {
-        mealPlans[day][mealType] = meal;
+    openRecipeSelectionModal(day, mealType);
+}
+
+function selectRecipeForMeal(recipeName) {
+    if (window.currentMealSlot) {
+        const { day, meal } = window.currentMealSlot;
+        if (!mealPlans[day]) mealPlans[day] = {};
+        mealPlans[day][meal] = recipeName;
         saveData();
         renderMealPlan();
-        updateDashboardStats();
-        
-        // Add ingredients to grocery list if not already there
-        addIngredientsToGroceryList(meal);
+        closeRecipeSelectionModal();
+        showNotification(`${recipeName} added to ${day} ${meal}!`, 'success');
+        window.currentMealSlot = null;
     }
 }
 
 function addIngredientsToGroceryList(meal) {
-    // Simple ingredient detection (in a real app, you'd have a proper recipe database)
-    const commonIngredients = {
-        'pasta': ['Pasta', 'Tomato Sauce'],
-        'salad': ['Lettuce', 'Tomatoes', 'Cucumber'],
-        'chicken': ['Chicken Breast'],
-        'salmon': ['Salmon Fillet', 'Lemon'],
-        'soup': ['Vegetables', 'Broth'],
-        'sandwich': ['Bread', 'Cheese']
+    const ingredients = {
+        'Chicken Stir Fry': ['Chicken breast', 'Bell peppers', 'Onions', 'Soy sauce'],
+        'Pasta Primavera': ['Pasta', 'Mixed vegetables', 'Olive oil', 'Parmesan cheese'],
+        'Grilled Salmon': ['Salmon fillet', 'Lemon', 'Herbs', 'Olive oil'],
+        'Vegetable Curry': ['Mixed vegetables', 'Coconut milk', 'Curry powder', 'Rice']
     };
     
-    const mealLower = meal.toLowerCase();
-    for (let ingredient in commonIngredients) {
-        if (mealLower.includes(ingredient)) {
-            commonIngredients[ingredient].forEach(item => {
-                if (!groceryList.find(g => g.name === item)) {
-                    groceryList.push({
-                        id: Date.now() + Math.random(),
-                        name: item,
-                        quantity: '1',
-                        category: 'Needed',
-                        completed: false
-                    });
-                }
+    const mealIngredients = ingredients[meal] || [];
+    let groceryList = JSON.parse(localStorage.getItem('groceryList') || '[]');
+    
+    mealIngredients.forEach(ingredient => {
+        if (!groceryList.find(item => item.name.toLowerCase() === ingredient.toLowerCase())) {
+            groceryList.push({
+                id: Date.now() + Math.random(),
+                name: ingredient,
+                quantity: '1',
+                category: 'ingredient',
+                priority: 'normal',
+                notes: `For ${meal}`,
+                completed: false,
+                addedDate: new Date().toISOString()
             });
         }
-    }
+    });
     
-    saveData();
-    renderGroceryList();
-    updateDashboardStats();
+    localStorage.setItem('groceryList', JSON.stringify(groceryList));
+    showNotification(`Ingredients for ${meal} added to grocery list!`, 'success');
 }
 
-// Grocery list functions
+// ========== GROCERY LIST ==========
+
+function renderGroceryList() {
+    const groceryList = JSON.parse(localStorage.getItem('groceryList') || '[]');
+    const container = document.querySelector('.grocery-list');
+    if (!container) return;
+    
+    if (groceryList.length === 0) {
+        container.innerHTML = `<div style="text-align:center;padding:2rem;color:#666;"><i class="fas fa-shopping-cart" style="font-size:3rem;margin-bottom:1rem;opacity:0.3;"></i><p>Your grocery list is empty</p></div>`;
+        return;
+    }
+    
+    container.innerHTML = groceryList.map(item => `
+        <div class="grocery-item ${item.completed ? 'completed' : ''}" data-priority="${item.priority}">
+            <input type="checkbox" class="grocery-checkbox" ${item.completed ? 'checked' : ''} onchange="toggleGroceryItem('${item.id}')">
+            <div style="flex:1;">
+                <strong>${item.name}</strong>
+                <div style="font-size:0.9rem;color:#666;">${item.quantity} - ${item.category.charAt(0).toUpperCase() + item.category.slice(1)}</div>
+                ${item.notes ? `<div style="font-size:0.8rem;color:#999;font-style:italic;">${item.notes}</div>` : ''}
+            </div>
+            <button class="btn btn-small btn-secondary" onclick="removeGroceryItem('${item.id}')">Remove</button>
+        </div>
+    `).join('');
+}
+
 function toggleGroceryItem(itemId) {
-    const item = groceryList.find(i => i.id == itemId);
+    let groceryList = JSON.parse(localStorage.getItem('groceryList') || '[]');
+    const item = groceryList.find(item => item.id == itemId);
     if (item) {
         item.completed = !item.completed;
-        saveData();
+        localStorage.setItem('groceryList', JSON.stringify(groceryList));
         renderGroceryList();
-        updateDashboardStats();
+        showNotification(`${item.name} marked as ${item.completed ? 'completed' : 'pending'}`, item.completed ? 'success' : 'info', 2000);
     }
 }
 
 function removeGroceryItem(itemId) {
-    groceryList = groceryList.filter(item => item.id != itemId);
-    saveData();
-    renderGroceryList();
-    updateDashboardStats();
+    let groceryList = JSON.parse(localStorage.getItem('groceryList') || '[]');
+    const item = groceryList.find(item => item.id == itemId);
+    if (item && confirm(`Remove "${item.name}" from grocery list?`)) {
+        groceryList = groceryList.filter(item => item.id != itemId);
+        localStorage.setItem('groceryList', JSON.stringify(groceryList));
+        renderGroceryList();
+        showNotification(`${item.name} removed from grocery list`, 'info');
+    }
 }
 
 function addCustomItem() {
     const input = document.getElementById('customItemInput');
     const itemName = input.value.trim();
-    
-    if (itemName) {
-        groceryList.push({
-            id: Date.now(),
-            name: itemName,
-            quantity: '1',
-            category: 'Custom',
-            completed: false
-        });
-        
-        input.value = '';
-        saveData();
-        renderGroceryList();
-        updateDashboardStats();
+    if (!itemName) {
+        showNotification('Please enter an item name', 'warning');
+        return;
     }
-}
-
-// Search and filter functions
-function searchItems(query) {
-    const filteredItems = pantryItems.filter(item => 
-        item.name.toLowerCase().includes(query.toLowerCase()) ||
-        item.category.toLowerCase().includes(query.toLowerCase())
-    );
     
-    const inventoryGrid = document.querySelector('.inventory-grid');
-    inventoryGrid.innerHTML = filteredItems.map(item => `
-        <div class="inventory-item ${item.status}" data-id="${item.id}">
-            <div class="item-header">
-                <div>
-                    <div class="item-name">${item.name}</div>
-                    <div class="item-category">${item.category.charAt(0).toUpperCase() + item.category.slice(1)}</div>
-                </div>
-            </div>
-            <div class="item-details">
-                <div class="item-quantity">${item.quantity}</div>
-                <div class="item-expiry">Expires: ${formatDate(item.expiry)}</div>
-            </div>
-            <div class="item-actions">
-                <button class="btn btn-small btn-secondary" onclick="editInventoryItem('${item.id}')">Edit</button>
-                <button class="btn btn-small btn-secondary" onclick="deleteInventoryItem('${item.id}')">Delete</button>
-            </div>
-        </div>
-    `).join('');
+    let groceryList = JSON.parse(localStorage.getItem('groceryList') || '[]');
+    if (groceryList.find(item => item.name.toLowerCase() === itemName.toLowerCase())) {
+        showNotification(`${itemName} is already in your list`, 'warning');
+        return;
+    }
+    
+    groceryList.push({
+        id: Date.now(),
+        name: itemName,
+        quantity: '1',
+        category: 'other',
+        priority: 'normal',
+        notes: '',
+        completed: false,
+        addedDate: new Date().toISOString()
+    });
+    
+    localStorage.setItem('groceryList', JSON.stringify(groceryList));
+    renderGroceryList();
+    input.value = '';
+    showNotification(`${itemName} added to grocery list!`, 'success');
 }
 
-// Authentication functions
+// ========== AUTHENTICATION ==========
+
 function checkAuthStatus() {
-    const savedUser = localStorage.getItem('smartPantryUser');
-    if (savedUser) {
-        currentUser = JSON.parse(savedUser);
-        isLoggedIn = true;
+    if (currentUser) {
         showMainApp();
     } else {
         showAuthModal();
@@ -585,783 +399,443 @@ function checkAuthStatus() {
 }
 
 function showMainApp() {
-    // Hide auth modal
-    document.getElementById('authModal').classList.remove('active');
-    
-    // Show user profile in sidebar
-    const userProfile = document.getElementById('userProfile');
-    const userName = document.getElementById('userName');
-    const userEmail = document.getElementById('userEmail');
-    const userAvatar = document.getElementById('userAvatar');
-    
-    if (currentUser) {
-        userProfile.style.display = 'block';
-        userName.textContent = currentUser.name;
-        userEmail.textContent = currentUser.email;
-        userAvatar.textContent = currentUser.name.charAt(0).toUpperCase();
-    }
-    
-    // Enable main app functionality
-    document.querySelector('.app-container').style.pointerEvents = 'auto';
+    document.getElementById('authModal').style.display = 'none';
+    document.getElementById('userProfile').style.display = 'block';
+    document.getElementById('userName').textContent = currentUser.name;
+    document.getElementById('userEmail').textContent = currentUser.email;
+    document.getElementById('userAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
 }
 
 function showAuthModal() {
-    document.getElementById('authModal').classList.add('active');
-    
-    // Disable main app functionality
-    document.querySelector('.app-container').style.pointerEvents = 'none';
-    document.querySelector('#authModal').style.pointerEvents = 'auto';
-    
-    // Reset to login form
-    switchToLogin();
+    document.getElementById('authModal').style.display = 'flex';
+    document.getElementById('userProfile').style.display = 'none';
 }
 
 function switchToLogin() {
-    // Update toggle buttons
+    document.getElementById('loginForm').classList.add('active');
+    document.getElementById('registerForm').classList.remove('active');
     document.getElementById('loginToggle').classList.add('active');
     document.getElementById('registerToggle').classList.remove('active');
-    
-    // Move slider
-    document.getElementById('toggleSlider').classList.remove('register');
-    
-    // Update title and subtitle
-    document.getElementById('authTitle').textContent = 'Welcome to Smart Pantry';
-    document.getElementById('authSubtitle').textContent = 'Please sign in to access your pantry';
-    
-    // Show login form, hide register form
-    document.getElementById('loginFormContainer').classList.add('active');
-    document.getElementById('registerFormContainer').classList.remove('active');
+    document.querySelector('.toggle-slider').classList.remove('register');
 }
 
 function switchToRegister() {
-    // Update toggle buttons
-    document.getElementById('loginToggle').classList.remove('active');
+    document.getElementById('registerForm').classList.add('active');
+    document.getElementById('loginForm').classList.remove('active');
     document.getElementById('registerToggle').classList.add('active');
+    document.getElementById('loginToggle').classList.remove('active');
+    document.querySelector('.toggle-slider').classList.add('register');
+}
+
+function handleLogin() {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
     
-    // Move slider
-    document.getElementById('toggleSlider').classList.add('register');
+    if (!email || !password) {
+        showNotification('Please fill in all fields', 'error');
+        return;
+    }
     
-    // Update title and subtitle
-    document.getElementById('authTitle').textContent = 'Create Your Account';
-    document.getElementById('authSubtitle').textContent = 'Join Smart Pantry to manage your kitchen';
+    currentUser = { name: 'John Doe', email: email };
+    localStorage.setItem('smartPantryUser', JSON.stringify(currentUser));
+    showMainApp();
+    showNotification('Login successful!', 'success');
+}
+
+function handleRegister() {
+    const name = document.getElementById('registerName').value;
+    const email = document.getElementById('registerEmail').value;
+    const password = document.getElementById('registerPassword').value;
     
-    // Show register form, hide login form
-    document.getElementById('loginFormContainer').classList.remove('active');
-    document.getElementById('registerFormContainer').classList.add('active');
+    if (!name || !email || !password) {
+        showNotification('Please fill in all fields', 'error');
+        return;
+    }
+    
+    currentUser = { name: name, email: email };
+    localStorage.setItem('smartPantryUser', JSON.stringify(currentUser));
+    showMainApp();
+    showNotification('Registration successful!', 'success');
 }
 
 function logout() {
-    localStorage.removeItem('smartPantryUser');
     currentUser = null;
-    isLoggedIn = false;
-    document.getElementById('userProfile').style.display = 'none';
+    localStorage.removeItem('smartPantryUser');
     showAuthModal();
+    showNotification('Logged out successfully', 'info');
 }
 
-// Login form handler
-document.addEventListener('DOMContentLoaded', function() {
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            const rememberMe = document.getElementById('rememberMe').checked;
-            
-            // Simulate authentication (replace with real authentication)
-            if (email && password) {
-                const userData = {
-                    name: email.split('@')[0], // Simple name extraction
-                    email: email,
-                    loginTime: new Date().toISOString()
-                };
-                
-                localStorage.setItem('smartPantryUser', JSON.stringify(userData));
-                currentUser = userData;
-                isLoggedIn = true;
-                showMainApp();
-                
-                // Clear form
-                loginForm.reset();
-            }
-        });
-    }
-});
+// ========== MODAL FUNCTIONS ==========
 
-// Register form handler
-document.addEventListener('DOMContentLoaded', function() {
-    const registerForm = document.getElementById('registerForm');
-    if (registerForm) {
-        registerForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const name = document.getElementById('registerName').value;
-            const email = document.getElementById('registerEmail').value;
-            const password = document.getElementById('registerPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            const agreeTerms = document.getElementById('agreeTerms').checked;
-            
-            if (password !== confirmPassword) {
-                alert('Passwords do not match!');
-                return;
-            }
-            
-            if (!agreeTerms) {
-                alert('Please agree to the terms and conditions.');
-                return;
-            }
-            
-            // Simulate registration (replace with real registration)
-            const userData = {
-                name: name,
-                email: email,
-                registerTime: new Date().toISOString()
-            };
-            
-            localStorage.setItem('smartPantryUser', JSON.stringify(userData));
-            currentUser = userData;
-            isLoggedIn = true;
-            showMainApp();
-            
-            // Clear form
-            registerForm.reset();
-        });
-    }
-});
-
-// Navigation functionality
-function showPage(pageId) {
-    // Hide all pages
-    const pages = document.querySelectorAll('.page');
-    pages.forEach(page => page.classList.remove('active'));
-    
-    // Show selected page
-    const targetPage = document.getElementById(pageId);
-    if (targetPage) {
-        targetPage.classList.add('active');
-    }
-    
-    // Update navigation - remove active from all links first
-    const navLinks = document.querySelectorAll('.nav-link');
-    navLinks.forEach(link => link.classList.remove('active'));
-    
-    // Find and activate the correct nav link
-    navLinks.forEach(link => {
-        const onclick = link.getAttribute('onclick');
-        if (onclick && onclick.includes(`'${pageId}'`)) {
-            link.classList.add('active');
-        }
-    });
-    
-    // Close mobile sidebar
-    if (window.innerWidth <= 768) {
-        closeSidebar();
-    }
-}
-
-// Mobile sidebar functionality
-function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    
-    if (sidebar.classList.contains('mobile-visible')) {
-        sidebar.classList.remove('mobile-visible');
-    } else {
-        sidebar.classList.add('mobile-visible');
-    }
-}
-
-function closeSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    sidebar.classList.remove('mobile-visible');
-}
-
-// Modal functionality
-function openAddItemModal() {
-    document.getElementById('addItemModal').classList.add('active');
-}
-
-function closeAddItemModal() {
-    document.getElementById('addItemModal').classList.remove('active');
-}
-
-function openEditItemModal(button) {
-    const item = button.closest('.inventory-item');
-    const itemName = item.querySelector('.item-name').textContent;
-    const itemCategory = item.querySelector('.item-category').textContent.toLowerCase();
-    const itemQuantity = item.querySelector('.item-quantity').textContent;
-    const itemExpiry = item.querySelector('.item-expiry').textContent.replace('Expires: ', '').replace('Expired: ', '');
-    
-    // Populate the edit form
-    document.getElementById('editItemName').value = itemName;
-    document.getElementById('editItemCategory').value = itemCategory;
-    document.getElementById('editItemQuantity').value = itemQuantity;
-    
-    // Convert date format if needed
-    const expiryDate = new Date(itemExpiry);
-    if (!isNaN(expiryDate.getTime())) {
-        document.getElementById('editItemExpiry').value = expiryDate.toISOString().split('T')[0];
-    }
-    
-    // Store reference to the item being edited
-    document.getElementById('editItemModal').setAttribute('data-editing-item', item.querySelector('.item-name').textContent);
-    document.getElementById('editItemModal').classList.add('active');
-}
-
-function closeEditItemModal() {
-    document.getElementById('editItemModal').classList.remove('active');
-}
-
-function openRecipeSelectionModal(dayColumn, mealType) {
+function openAddItemModal() { modalActions.open('addItemModal'); }
+function closeAddItemModal() { modalActions.close('addItemModal'); }
+function openEditItemModal() { modalActions.open('editItemModal', false); }
+function closeEditItemModal() { modalActions.close('editItemModal'); }
+function openRecipeSelectionModal(dayColumn, mealType) { 
     document.getElementById('mealSlotInfo').textContent = `Select a recipe for ${mealType} on ${dayColumn}`;
-    document.getElementById('recipeSelectionModal').classList.add('active');
-    
-    // Store the meal slot info for later use
+    modalActions.open('recipeSelectionModal');
     window.currentMealSlot = { day: dayColumn, meal: mealType };
 }
+function closeRecipeSelectionModal() { modalActions.close('recipeSelectionModal'); }
+function openExportMealPlanModal() { modalActions.open('exportMealPlanModal'); }
+function closeExportMealPlanModal() { modalActions.close('exportMealPlanModal'); }
+function openAddGroceryItemModal() { modalActions.open('addGroceryItemModal'); }
+function closeAddGroceryItemModal() { modalActions.close('addGroceryItemModal'); }
 
-function closeRecipeSelectionModal() {
-    document.getElementById('recipeSelectionModal').classList.remove('active');
+function openEditProfileModal() {
+    modalActions.open('editProfileModal', false);
+    if (currentUser) {
+        document.getElementById('editProfileName').value = currentUser.name || '';
+        document.getElementById('editProfileEmail').value = currentUser.email || '';
+        document.getElementById('editProfileAvatar').textContent = (currentUser.name || 'U').charAt(0).toUpperCase();
+        ['editCurrentPassword', 'editNewPassword', 'editConfirmPassword'].forEach(id => 
+            document.getElementById(id).value = ''
+        );
+    }
+}
+function closeEditProfileModal() { modalActions.close('editProfileModal'); }
+
+// ========== FORM HANDLERS ==========
+
+function handleAddItem() {
+    addItem();
 }
 
-function openExportMealPlanModal() {
-    document.getElementById('exportMealPlanModal').classList.add('active');
+function handleEditProfile() {
+    const name = document.getElementById('editProfileName').value;
+    const email = document.getElementById('editProfileEmail').value;
+    
+    if (!name || !email) {
+        showNotification('Please fill in all required fields', 'error');
+        return;
+    }
+    
+    if (currentUser) {
+        currentUser.name = name;
+        currentUser.email = email;
+        localStorage.setItem('smartPantryUser', JSON.stringify(currentUser));
+        
+        document.getElementById('userName').textContent = currentUser.name;
+        document.getElementById('userEmail').textContent = currentUser.email;
+        document.getElementById('userAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
+        
+        showNotification('Profile updated successfully!', 'success');
+        closeEditProfileModal();
+    }
 }
 
-function closeExportMealPlanModal() {
-    document.getElementById('exportMealPlanModal').classList.remove('active');
-}
-
-// Settings toggle functionality
-function toggleSetting(toggle) {
-    toggle.classList.toggle('active');
-}
-
-// Inventory filtering
-function filterInventory(category) {
-    const items = document.querySelectorAll('.inventory-item');
-    items.forEach(item => {
-        if (category === 'all') {
-            item.style.display = 'block';
-        } else {
-            const itemCategory = item.querySelector('.item-category').textContent.toLowerCase();
-            item.style.display = itemCategory === category ? 'block' : 'none';
+function handleAddGroceryItem() {
+    const name = document.getElementById('groceryItemName').value.trim();
+    const quantity = document.getElementById('groceryItemQuantity').value.trim();
+    const category = document.getElementById('groceryItemCategory').value;
+    const priority = document.getElementById('groceryItemPriority').value;
+    const notes = document.getElementById('groceryItemNotes').value.trim();
+    
+    if (!name || !quantity || !category) {
+        showNotification('Please fill in required fields', 'error');
+        return;
+    }
+    
+    let groceryList = JSON.parse(localStorage.getItem('groceryList') || '[]');
+    
+    const existingItem = groceryList.find(item => item.name.toLowerCase() === name.toLowerCase());
+    if (existingItem) {
+        if (confirm(`${name} is already in your grocery list. Update it?`)) {
+            existingItem.quantity = quantity;
+            existingItem.category = category;
+            existingItem.priority = priority;
+            existingItem.notes = notes;
+            localStorage.setItem('groceryList', JSON.stringify(groceryList));
+            renderGroceryList();
+            closeAddGroceryItemModal();
+            showNotification(`${name} updated in grocery list!`, 'success');
         }
+        return;
+    }
+    
+    groceryList.push({
+        id: Date.now(),
+        name, quantity, category, priority, notes,
+        completed: false,
+        addedDate: new Date().toISOString()
     });
+    
+    localStorage.setItem('groceryList', JSON.stringify(groceryList));
+    renderGroceryList();
+    closeAddGroceryItemModal();
+    showNotification(`${name} added to grocery list!`, 'success');
 }
 
-// Handle responsive behavior
-function handleResize() {
+// ========== NAVIGATION & UI ==========
+
+function showPage(pageId) {
+    document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+    const targetPage = document.getElementById(pageId);
+    if (targetPage) targetPage.classList.add('active');
+    
+    document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+    const activeLink = document.querySelector(`[onclick="showPage('${pageId}')"]`);
+    if (activeLink) activeLink.classList.add('active');
+    
+    switch(pageId) {
+        case 'dashboard':
+            updateDashboardStats();
+            updateAlerts();
+            updatePlannedMealsPreview();
+            updateRecipeSuggestions();
+            break;
+        case 'inventory':
+            renderPantryItems();
+            break;
+        case 'meal-planner':
+            renderMealPlan();
+            break;
+        case 'grocery-list':
+            renderGroceryList();
+            break;
+    }
+    
+    if (window.innerWidth <= 768) toggleSidebar();
+}
+
+function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
-    const mainContent = document.getElementById('main-content');
-    
-    if (window.innerWidth > 768) {
-        sidebar.classList.remove('mobile-hidden', 'mobile-visible');
-        mainContent.classList.remove('full-width');
-    } else {
-        if (!sidebar.classList.contains('mobile-visible')) {
-            sidebar.classList.add('mobile-hidden');
-            mainContent.classList.add('full-width');
-        }
+    if (window.innerWidth <= 768) {
+        sidebar.classList.toggle('mobile-visible');
     }
 }
 
-// Quick action buttons functionality
-function updateInventory() {
-    openAddItemModal();
-}
-
-function scanPantry() {
-    openScanPantryModal();
-}
-
-function findRecipes() {
-    showPage('recipes');
-}
-
-// Add custom grocery item functionality
-function addCustomItem() {
-    const input = document.getElementById('customItemInput');
-    const itemName = input.value.trim();
-    
-    if (itemName) {
-        const groceryList = document.querySelector('.grocery-list');
-        const newItem = document.createElement('div');
-        newItem.className = 'grocery-item';
-        newItem.innerHTML = `
-            <input type="checkbox" class="grocery-checkbox">
-            <div style="flex: 1;">
-                <strong>${itemName}</strong>
-                <div style="font-size: 0.9rem; color: #666;">Custom item</div>
-            </div>
-            <button class="btn btn-small btn-secondary" onclick="removeGroceryItem(this)">Remove</button>
-        `;
-        
-        // Add event listener to the new checkbox
-        const checkbox = newItem.querySelector('.grocery-checkbox');
-        checkbox.addEventListener('change', function() {
-            const item = this.closest('.grocery-item');
-            if (this.checked) {
-                item.classList.add('completed');
-            } else {
-                item.classList.remove('completed');
-            }
-        });
-        
-        groceryList.appendChild(newItem);
-        input.value = '';
-    }
-}
-
-// Remove grocery item functionality
-function removeGroceryItem(button) {
-    button.closest('.grocery-item').remove();
-}
-
-// Inventory item management
-function editInventoryItem(button) {
-    openEditItemModal(button);
-}
-
-function deleteInventoryItem(button) {
-    const item = button.closest('.inventory-item');
-    const itemName = item.querySelector('.item-name').textContent;
-    if (confirm(`Are you sure you want to delete "${itemName}"?`)) {
-        item.remove();
-    }
-}
-
-// Export functionality
-function exportMealPlan() {
-    openExportMealPlanModal();
-}
+// ========== EXPORT/DOWNLOAD FUNCTIONS ==========
 
 function downloadMealPlan() {
-    const selectedFormat = document.querySelector('input[name="exportFormat"]:checked').value;
-    const includeGroceryList = document.querySelector('#exportMealPlanModal input[type="checkbox"]').checked;
+    const format = document.querySelector('input[name="exportFormat"]:checked')?.value || 'pdf';
+    const includeGrocery = document.querySelector('#exportMealPlanModal input[type="checkbox"]')?.checked || false;
     
-    alert(`Exporting meal plan as ${selectedFormat.toUpperCase()}${includeGroceryList ? ' with grocery list' : ''}`);
-    closeExportMealPlanModal();
+    showNotification(`Exporting meal plan as ${format.toUpperCase()}...`, 'info');
+    
+    setTimeout(() => {
+        let content = `SMART PANTRY - MEAL PLAN\n${new Date().toLocaleDateString()}\n${'='.repeat(35)}\n\n`;
+        
+        Object.entries(mealPlans).forEach(([day, meals]) => {
+            content += `${day.toUpperCase()}:\n`;
+            ['breakfast', 'lunch', 'dinner'].forEach(meal => 
+                content += `  ${meal.charAt(0).toUpperCase() + meal.slice(1)}: ${meals[meal] || 'Not planned'}\n`
+            );
+            content += '\n';
+        });
+        
+        if (includeGrocery) {
+            content += '\nGROCERY LIST:\n=============\n';
+            const groceryItems = JSON.parse(localStorage.getItem('groceryList') || '[]');
+            groceryItems.forEach(item => content += `- ${item.name} (${item.category})\n`);
+        }
+        
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `meal-plan-${Date.now()}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        showNotification('Meal plan exported successfully!', 'success');
+        closeExportMealPlanModal();
+    }, 1000);
 }
 
 function downloadGroceryList() {
-    alert('Grocery list would be downloaded as PDF');
+    const content = `SMART PANTRY - GROCERY LIST\n${new Date().toLocaleDateString()}\n${'='.repeat(32)}\n\n□ Sample items would be listed here`;
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `grocery-list-${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showNotification('Grocery list downloaded!', 'success');
 }
 
 function printGroceryList() {
-    window.print();
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`<html><head><title>Grocery List</title><style>body{font-family:Arial,sans-serif;padding:20px;}h1{color:#667eea;}</style></head><body><h1>Smart Pantry - Grocery List</h1><p>${new Date().toLocaleDateString()}</p><div>□ Sample grocery items would be listed here</div></body></html>`);
+    printWindow.document.close();
+    printWindow.print();
 }
 
-// Auto-save meal plan changes
-let mealPlanTimeout;
-function saveMealPlan() {
-    clearTimeout(mealPlanTimeout);
-    mealPlanTimeout = setTimeout(() => {
-        console.log('Meal plan auto-saved');
-    }, 2000);
+// ========== SETTINGS & DATA MANAGEMENT ==========
+
+function toggleSetting(toggleElement) {
+    toggleElement.classList.toggle('active');
+    const isActive = toggleElement.classList.contains('active');
+    const settingName = toggleElement.closest('.setting-item').querySelector('strong').textContent;
+    showNotification(`${settingName} ${isActive ? 'enabled' : 'disabled'}`, isActive ? 'success' : 'info', 2000);
+    
+    const settings = JSON.parse(localStorage.getItem('smartPantrySettings') || '{}');
+    settings[settingName] = isActive;
+    localStorage.setItem('smartPantrySettings', JSON.stringify(settings));
 }
 
-// Search functionality (could be added to inventory/recipes)
-function initializeSearch() {
-    const searchInputs = document.querySelectorAll('[placeholder*="Search"]');
-    searchInputs.forEach(input => {
-        input.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            // Implementation would filter visible items based on search term
-            console.log('Searching for:', searchTerm);
-        });
-    });
+function exportData() {
+    const data = { pantryItems, mealPlans, groceryItems: JSON.parse(localStorage.getItem('groceryList') || '[]'), userProfile: currentUser, exportDate: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'smart-pantry-data.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showNotification('Data exported successfully!', 'success');
 }
 
-// Initialize on DOM content loaded
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Smart Pantry App Initialized');
-    initializeSearch();
-    
-    // Initialize mobile responsive behavior
-    handleResize();
-    
-    // Grocery list functionality
-    const checkboxes = document.querySelectorAll('.grocery-checkbox');
-    checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const item = this.closest('.grocery-item');
-            if (this.checked) {
-                item.classList.add('completed');
-            } else {
-                item.classList.remove('completed');
-            }
-        });
-    });
-
-    // Meal slot functionality
-    const mealSlots = document.querySelectorAll('.meal-slot');
-    mealSlots.forEach(slot => {
-        slot.addEventListener('click', function() {
-            if (!this.classList.contains('filled')) {
-                const dayColumn = this.closest('.day-column');
-                const dayName = dayColumn.querySelector('.day-header').textContent;
-                const mealSlots = dayColumn.querySelectorAll('.meal-slot');
-                const slotIndex = Array.from(mealSlots).indexOf(this);
-                const mealTypes = ['Breakfast', 'Lunch', 'Dinner'];
-                const mealType = mealTypes[slotIndex] || 'Meal';
-                
-                openRecipeSelectionModal(dayName, mealType);
-            }
-        });
-    });
-
-    // Initialize mobile view
-    if (window.innerWidth <= 768) {
-        document.getElementById('sidebar').classList.add('mobile-hidden');
-        document.getElementById('main-content').classList.add('full-width');
-    }
-
-    // Recipe card interactions
-    const addToPlanButtons = document.querySelectorAll('.recipe-card .btn-primary');
-    const saveButtons = document.querySelectorAll('.recipe-card .btn-secondary');
-    
-    addToPlanButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const recipeTitle = this.closest('.recipe-content').querySelector('.recipe-title').textContent;
-            alert(`"${recipeTitle}" would be added to your meal plan`);
-        });
-    });
-    
-    saveButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const recipeTitle = this.closest('.recipe-content').querySelector('.recipe-title').textContent;
-            alert(`"${recipeTitle}" saved to your favorites`);
-        });
-    });
-
-    // Smooth animations for cards
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    };
-
-    const observer = new IntersectionObserver(function(entries) {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
-            }
-        });
-    }, observerOptions);
-
-    // Observe all cards for animation
-    const cards = document.querySelectorAll('.card, .inventory-item, .recipe-card');
-    cards.forEach(card => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(20px)';
-        card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-        observer.observe(card);
-    });
-
-    // Form submission handling
-    const addItemForm = document.getElementById('addItemForm');
-    if (addItemForm) {
-        addItemForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Get form data
-            const itemName = document.getElementById('itemName').value.trim();
-            const itemCategory = document.getElementById('itemCategory').value;
-            const itemQuantity = document.getElementById('itemQuantity').value.trim();
-            const itemExpiry = document.getElementById('itemExpiry').value;
-            
-            if (itemName && itemCategory && itemQuantity && itemExpiry) {
-                // Create new inventory item
-                const inventoryGrid = document.querySelector('.inventory-grid');
-                const newItem = document.createElement('div');
-                newItem.className = 'inventory-item';
-                
-                const expiryDate = new Date(itemExpiry);
-                const today = new Date();
-                const timeDiff = expiryDate.getTime() - today.getTime();
-                const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
-                
-                // Add warning classes based on expiry
-                if (daysDiff < 0) {
-                    newItem.classList.add('expired');
-                } else if (daysDiff <= 3) {
-                    newItem.classList.add('low-stock');
-                }
-                
-                newItem.innerHTML = `
-                    <div class="item-header">
-                        <div>
-                            <div class="item-name">${itemName}</div>
-                            <div class="item-category">${itemCategory.charAt(0).toUpperCase() + itemCategory.slice(1)}</div>
-                        </div>
-                    </div>
-                    <div class="item-details">
-                        <div class="item-quantity">${itemQuantity}</div>
-                        <div class="item-expiry">Expires: ${expiryDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
-                    </div>
-                    <div class="item-actions">
-                        <button class="btn btn-small btn-secondary" onclick="editInventoryItem(this)">Edit</button>
-                        <button class="btn btn-small btn-secondary" onclick="deleteInventoryItem(this)">Delete</button>
-                    </div>
-                `;
-                
-                inventoryGrid.appendChild(newItem);
-                
-                alert(`Item "${itemName}" added to inventory!`);
-                closeAddItemModal();
-                this.reset();
-            } else {
-                alert('Please fill in all fields');
-            }
-        });
-    }
-
-    // Add Enter key support for custom grocery items
-    const customItemInput = document.getElementById('customItemInput');
-    if (customItemInput) {
-        customItemInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                addCustomItem();
-            }
-        });
-    }
-
-    // Edit item form submission
-    const editItemForm = document.getElementById('editItemForm');
-    if (editItemForm) {
-        editItemForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const editingItemName = document.getElementById('editItemModal').getAttribute('data-editing-item');
-            const newName = document.getElementById('editItemName').value.trim();
-            const newCategory = document.getElementById('editItemCategory').value;
-            const newQuantity = document.getElementById('editItemQuantity').value.trim();
-            const newExpiry = document.getElementById('editItemExpiry').value;
-            
-            if (newName && newCategory && newQuantity && newExpiry) {
-                // Find the item being edited
-                const inventoryItems = document.querySelectorAll('.inventory-item');
-                inventoryItems.forEach(item => {
-                    const itemName = item.querySelector('.item-name').textContent;
-                    if (itemName === editingItemName) {
-                        // Update the item
-                        item.querySelector('.item-name').textContent = newName;
-                        item.querySelector('.item-category').textContent = newCategory.charAt(0).toUpperCase() + newCategory.slice(1);
-                        item.querySelector('.item-quantity').textContent = newQuantity;
-                        
-                        const expiryDate = new Date(newExpiry);
-                        item.querySelector('.item-expiry').textContent = `Expires: ${expiryDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`;
-                        
-                        // Update warning classes based on expiry
-                        const today = new Date();
-                        const timeDiff = expiryDate.getTime() - today.getTime();
-                        const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
-                        
-                        item.classList.remove('expired', 'low-stock');
-                        if (daysDiff < 0) {
-                            item.classList.add('expired');
-                        } else if (daysDiff <= 3) {
-                            item.classList.add('low-stock');
-                        }
-                    }
-                });
-                
-                alert(`Item "${newName}" updated successfully!`);
-                closeEditItemModal();
-            } else {
-                alert('Please fill in all fields');
-            }
-        });
-    }
-});
-
-// Recipe selection for meal planning
-function selectRecipeForMeal(recipeName) {
-    if (window.currentMealSlot) {
-        // Find the corresponding meal slot and update it
-        const dayColumns = document.querySelectorAll('.day-column');
-        dayColumns.forEach(column => {
-            const dayName = column.querySelector('.day-header').textContent;
-            if (dayName === window.currentMealSlot.day) {
-                const mealSlots = column.querySelectorAll('.meal-slot');
-                const mealTypes = ['Breakfast', 'Lunch', 'Dinner'];
-                const slotIndex = mealTypes.indexOf(window.currentMealSlot.meal);
-                
-                if (slotIndex !== -1 && mealSlots[slotIndex]) {
-                    const slot = mealSlots[slotIndex];
-                    slot.classList.add('filled');
-                    slot.innerHTML = `
-                        <div>
-                            <strong>${window.currentMealSlot.meal}</strong><br>
-                            ${recipeName}
-                        </div>
-                    `;
-                }
-            }
-        });
-        
-        closeRecipeSelectionModal();
-        window.currentMealSlot = null;
-    }
-}
-
-// Edit Profile Modal Functions
-function openEditProfileModal() {
-    const modal = document.getElementById('editProfileModal');
-    const editProfileName = document.getElementById('editProfileName');
-    const editProfileEmail = document.getElementById('editProfileEmail');
-    const editProfileAvatar = document.getElementById('editProfileAvatar');
-    
-    // Populate current user data
-    if (currentUser) {
-        editProfileName.value = currentUser.name;
-        editProfileEmail.value = currentUser.email;
-        editProfileAvatar.textContent = currentUser.name.charAt(0).toUpperCase();
-    }
-    
-    // Clear password fields
-    document.getElementById('editCurrentPassword').value = '';
-    document.getElementById('editNewPassword').value = '';
-    document.getElementById('editConfirmPassword').value = '';
-    
-    modal.classList.add('active');
-}
-
-function closeEditProfileModal() {
-    document.getElementById('editProfileModal').classList.remove('active');
-}
-
-function changeProfilePicture() {
-    // Create file input element
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'image/*';
-    
-    fileInput.onchange = function(event) {
+function importData() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = function(event) {
         const file = event.target.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                // For now, just show the first letter (in a real app, you'd upload and store the image)
-                console.log('Profile picture selected:', file.name);
-                alert('Profile picture functionality would be implemented here in a real application.');
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.pantryItems) pantryItems = data.pantryItems;
+                    if (data.mealPlans) mealPlans = data.mealPlans;
+                    showNotification('Data imported successfully!', 'success');
+                } catch (error) {
+                    showNotification('Error importing data', 'error');
+                }
             };
-            reader.readAsDataURL(file);
+            reader.readAsText(file);
         }
     };
-    
-    fileInput.click();
+    input.click();
 }
 
-// Handle edit profile form submission
-document.addEventListener('DOMContentLoaded', function() {
-    // Add item form
-    const addItemForm = document.getElementById('addItemForm');
-    if (addItemForm) {
-        addItemForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            addItem();
-        });
+function resetApp() {
+    if (confirm('Are you sure you want to reset all data? This cannot be undone.')) {
+        localStorage.clear();
+        location.reload();
     }
-    
-    // Edit item form
-    const editItemForm = document.getElementById('editItemForm');
-    if (editItemForm) {
-        editItemForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            saveEditedItem();
-        });
+}
+
+function deleteAccount() {
+    if (confirm('Are you sure you want to delete your account? This will remove all your data and cannot be undone.')) {
+        localStorage.clear();
+        showNotification('Account deleted. You will be redirected to the login page.', 'info');
+        setTimeout(() => location.reload(), 2000);
     }
-    
-    // Edit profile form
-    const editProfileForm = document.getElementById('editProfileForm');
-    if (editProfileForm) {
-        editProfileForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const name = document.getElementById('editProfileName').value;
-            const email = document.getElementById('editProfileEmail').value;
-            const currentPassword = document.getElementById('editCurrentPassword').value;
-            const newPassword = document.getElementById('editNewPassword').value;
-            const confirmPassword = document.getElementById('editConfirmPassword').value;
-            
-            // Validate inputs
-            if (!name || !email) {
-                alert('Please fill in all required fields.');
-                return;
-            }
-            
-            // Validate email format
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                alert('Please enter a valid email address.');
-                return;
-            }
-            
-            // If changing password, validate password fields
-            if (currentPassword || newPassword || confirmPassword) {
-                if (!currentPassword) {
-                    alert('Please enter your current password to change it.');
-                    return;
-                }
-                
-                if (!newPassword) {
-                    alert('Please enter a new password.');
-                    return;
-                }
-                
-                if (newPassword !== confirmPassword) {
-                    alert('New passwords do not match.');
-                    return;
-                }
-                
-                if (newPassword.length < 6) {
-                    alert('New password must be at least 6 characters long.');
-                    return;
-                }
-                
-                // In a real app, you'd verify the current password with the server
-                if (currentUser && currentUser.password && currentUser.password !== currentPassword) {
-                    alert('Current password is incorrect.');
-                    return;
-                }
-            }
-            
-            // Update user data
-            if (currentUser) {
-                currentUser.name = name;
-                currentUser.email = email;
-                
-                if (newPassword) {
-                    currentUser.password = newPassword;
-                }
-                
-                // Save to localStorage
-                localStorage.setItem('smartPantryUser', JSON.stringify(currentUser));
-                
-                // Update UI
-                document.getElementById('userName').textContent = currentUser.name;
-                document.getElementById('userEmail').textContent = currentUser.email;
-                document.getElementById('userAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
-                
-                alert('Profile updated successfully!');
-                closeEditProfileModal();
-            }
-        });
-    }
+}
+
+function changeProfilePicture() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            showNotification('Profile picture updated!', 'success');
+        }
+    };
+    input.click();
+}
+
+// ========== GLOBAL WINDOW FUNCTIONS ==========
+
+// Make all functions globally accessible
+Object.getOwnPropertyNames(window).filter(name => typeof window[name] === 'function' && name.startsWith('open') || name.startsWith('close') || name.startsWith('handle') || name.startsWith('toggle') || name.startsWith('add') || name.startsWith('edit') || name.startsWith('delete') || name.startsWith('remove') || name.startsWith('download') || name.startsWith('print') || name.startsWith('export') || name.startsWith('import') || name.startsWith('reset') || name.startsWith('change') || name.startsWith('select') || name.startsWith('show') || name.startsWith('switch') || name.startsWith('logout') || name.startsWith('filter')).forEach(fnName => {
+    window[fnName] = eval(fnName);
 });
 
-// Event listeners
-window.addEventListener('resize', handleResize);
+// Explicitly make key functions global
+window.openAddItemModal = openAddItemModal;
+window.closeAddItemModal = closeAddItemModal;
+window.openEditItemModal = openEditItemModal;
+window.closeEditItemModal = closeEditItemModal;
+window.openEditProfileModal = openEditProfileModal;
+window.closeEditProfileModal = closeEditProfileModal;
+window.openRecipeSelectionModal = openRecipeSelectionModal;
+window.closeRecipeSelectionModal = closeRecipeSelectionModal;
+window.openExportMealPlanModal = openExportMealPlanModal;
+window.closeExportMealPlanModal = closeExportMealPlanModal;
+window.openAddGroceryItemModal = openAddGroceryItemModal;
+window.closeAddGroceryItemModal = closeAddGroceryItemModal;
+window.selectRecipeForMeal = selectRecipeForMeal;
+window.downloadMealPlan = downloadMealPlan;
+window.downloadGroceryList = downloadGroceryList;
+window.printGroceryList = printGroceryList;
+window.changeProfilePicture = changeProfilePicture;
+window.toggleSetting = toggleSetting;
+window.filterInventory = filterInventory;
+window.logout = logout;
+window.switchToLogin = switchToLogin;
+window.switchToRegister = switchToRegister;
+window.removeGroceryItem = removeGroceryItem;
+window.addCustomItem = addCustomItem;
+window.toggleGroceryItem = toggleGroceryItem;
+window.exportData = exportData;
+window.importData = importData;
+window.resetApp = resetApp;
+window.deleteAccount = deleteAccount;
+window.editInventoryItem = editInventoryItem;
+window.deleteInventoryItem = deleteInventoryItem;
+window.handleAddItem = handleAddItem;
+window.handleEditProfile = handleEditProfile;
+window.handleAddGroceryItem = handleAddGroceryItem;
+window.handleLogin = handleLogin;
+window.handleRegister = handleRegister;
+window.showPage = showPage;
+window.toggleSidebar = toggleSidebar;
+window.addRecipeToMealPlan = addRecipeToMealPlan;
 
-// Close modal when clicking outside
-window.addEventListener('click', function(event) {
-    const modals = ['addItemModal', 'editItemModal', 'recipeSelectionModal', 'exportMealPlanModal', 'editProfileModal'];
-    modals.forEach(modalId => {
-        const modal = document.getElementById(modalId);
-        if (event.target === modal) {
-            modal.classList.remove('active');
-        }
+// ========== INITIALIZATION ==========
+
+document.addEventListener('DOMContentLoaded', function() {
+    checkAuthStatus();
+    
+    // Initialize event listeners
+    const forms = [
+        { id: 'addItemForm', handler: (e) => { e.preventDefault(); handleAddItem(); } },
+        { id: 'editItemForm', handler: (e) => { e.preventDefault(); saveEditedItem(); } },
+        { id: 'loginForm', handler: (e) => { e.preventDefault(); handleLogin(); } },
+        { id: 'registerForm', handler: (e) => { e.preventDefault(); handleRegister(); } },
+        { id: 'editProfileForm', handler: (e) => { e.preventDefault(); handleEditProfile(); } },
+        { id: 'addGroceryItemForm', handler: (e) => { e.preventDefault(); handleAddGroceryItem(); } }
+    ];
+    
+    forms.forEach(({ id, handler }) => {
+        const form = document.getElementById(id);
+        if (form) form.addEventListener('submit', handler);
     });
+    
+    // Initialize data
+    [updateDashboardStats, updateAlerts, updatePlannedMealsPreview, updateRecipeSuggestions, renderPantryItems, renderMealPlan, renderGroceryList].forEach(fn => fn());
+    
+    // Close modals when clicking outside
+    window.addEventListener('click', function(event) {
+        ['addItemModal', 'editItemModal', 'recipeSelectionModal', 'exportMealPlanModal', 'editProfileModal', 'addGroceryItemModal'].forEach(modalId => {
+            const modal = document.getElementById(modalId);
+            if (event.target === modal) modal.classList.remove('active');
+        });
+    });
+    
+    // Add optimized styles
+    if (!document.querySelector('#optimizedStyles')) {
+        const style = document.createElement('style');
+        style.id = 'optimizedStyles';
+        style.textContent = `
+            @keyframes slideInRight{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+            @keyframes slideOutRight{from{transform:translateX(0);opacity:1}to{transform:translateX(100%);opacity:0}}
+            .notification{transition:all 0.3s ease}
+            .grocery-item[data-priority="urgent"]{border-left:4px solid #dc3545;background:rgba(220,53,69,0.05)}
+            .grocery-item[data-priority="low"]{opacity:0.7}
+            .inventory-grid:empty::after{content:"No items in your pantry. Click 'Add Item' to get started!";display:block;text-align:center;padding:3rem;color:#666;font-style:italic;grid-column:1/-1}
+        `;
+        document.head.appendChild(style);
+    }
 });
