@@ -2,9 +2,9 @@ import React, { useEffect, useState, useMemo, useCallback, memo } from 'react';
 import { useAppContext } from '../../context/AppContext';
 
 const Dashboard = memo(({ toggleModal }) => {
-  const { pantryItems, mealPlans, getItemStatus, setActivePage, showNotification } = useAppContext();
+  const { pantryItems, mealPlans, groceryList, getItemStatus, setActivePage, showNotification } = useAppContext();
   
-  // Use useMemo for stats calculation instead of state + useEffect
+  // Enhanced stats calculation with more insights
   const stats = useMemo(() => {
     const totalItems = pantryItems.length;
     const expiringItems = pantryItems.filter(item => getItemStatus(item.expiry) === 'expiring').length;
@@ -14,13 +14,29 @@ const Dashboard = memo(({ toggleModal }) => {
       return !isNaN(qty) && qty <= 2;
     }).length;
     
+    // Category breakdown
+    const categories = pantryItems.reduce((acc, item) => {
+      acc[item.category] = (acc[item.category] || 0) + 1;
+      return acc;
+    }, {});
+    
+    // Value estimation (if available)
+    const estimatedValue = pantryItems.reduce((total, item) => {
+      const price = parseFloat(item.price || 0);
+      const qty = parseInt(item.quantity || 1);
+      return total + (price * qty);
+    }, 0);
+    
     return {
       totalItems,
       expiringItems,
       expiredItems,
-      lowStockItems
+      lowStockItems,
+      categories,
+      estimatedValue,
+      groceryCount: groceryList.length
     };
-  }, [pantryItems, getItemStatus]);
+  }, [pantryItems, groceryList, getItemStatus]);
 
   // Generate alerts with useMemo
   const alerts = useMemo(() => {

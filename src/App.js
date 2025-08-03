@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
-import './styles.css';
 
 // Context
 import { AppProvider } from './context/AppContext';
@@ -11,6 +10,7 @@ import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
 import Notification from './components/Notification';
 import ErrorBoundary from './components/ErrorBoundary';
+import WelcomeOnboarding from './components/WelcomeOnboarding';
 
 // Lazy-loaded Modal Components
 const AuthModal = lazy(() => import('./components/modals/AuthModal'));
@@ -54,6 +54,9 @@ function App() {
   const [sidebarVisible, setSidebarVisible] = useState(window.innerWidth > 768);
   const [currentEditingItem, setCurrentEditingItem] = useState(null);
   const [currentMealSlot, setCurrentMealSlot] = useState(null);
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    return !localStorage.getItem('onboardingCompleted') && !currentUser;
+  });
 
   // Show notification with memoization
   const showNotification = useCallback((message, type = 'success', duration = 3000) => {
@@ -115,6 +118,10 @@ function App() {
         setCurrentMealSlot
       }}>
         <Router>
+          {showOnboarding && (
+            <WelcomeOnboarding onComplete={() => setShowOnboarding(false)} />
+          )}
+          
           <div className="app-container" role="application">
             <button 
               className="mobile-toggle" 

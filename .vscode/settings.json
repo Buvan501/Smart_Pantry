@@ -1,0 +1,13 @@
+{
+  "terminal.integrated.env.windows": {
+    "PATH": "${env:PATH}"
+  },
+  "terminal.integrated.profiles.windows": {
+    "PowerShell": {
+      "source": "PowerShell",
+      "icon": "terminal-powershell",
+      "args": ["-NoExit", "-Command", "& {if (Test-Path $PROFILE) {. $PROFILE}}"]
+    }
+  },
+  "terminal.integrated.defaultProfile.windows": "PowerShell"
+}

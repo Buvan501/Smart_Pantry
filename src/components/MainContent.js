@@ -8,6 +8,9 @@ import Recipes from './pages/Recipes';
 import MealPlanner from './pages/MealPlanner';
 import GroceryList from './pages/GroceryList';
 import Settings from './pages/Settings';
+import Analytics from './pages/Analytics';
+import SmartShoppingAssistant from './pages/SmartShoppingAssistant';
+import FoodWasteTracker from './pages/FoodWasteTracker';
 
 const MainContent = memo(({ activePage, toggleModal }) => {
   const { setActivePage } = useAppContext();
@@ -45,6 +48,18 @@ const MainContent = memo(({ activePage, toggleModal }) => {
 
       <div id="grocery-list" className={`page ${activePage === 'grocery-list' ? 'active' : ''}`}>
         <GroceryList toggleModal={toggleModal} />
+      </div>
+
+      <div id="analytics" className={`page ${activePage === 'analytics' ? 'active' : ''}`}>
+        <Analytics />
+      </div>
+
+      <div id="smart-shopping" className={`page ${activePage === 'smart-shopping' ? 'active' : ''}`}>
+        <SmartShoppingAssistant toggleModal={toggleModal} />
+      </div>
+
+      <div id="food-waste" className={`page ${activePage === 'food-waste' ? 'active' : ''}`}>
+        <FoodWasteTracker />
       </div>
 
       <div id="settings" className={`page ${activePage === 'settings' ? 'active' : ''}`}>

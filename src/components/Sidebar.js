@@ -141,6 +141,24 @@ const Sidebar = memo(({ isVisible, toggleSidebar, currentUser, toggleModal }) =>
           </a>
         </li>
         <li className="nav-item">
+          <a href="#" className={`nav-link ${activePage === 'analytics' ? 'active' : ''}`} 
+             onClick={() => showPage('analytics')}>
+            <i className="fas fa-chart-bar"></i>Analytics
+          </a>
+        </li>
+        <li className="nav-item">
+          <a href="#" className={`nav-link ${activePage === 'smart-shopping' ? 'active' : ''}`} 
+             onClick={() => showPage('smart-shopping')}>
+            <i className="fas fa-brain"></i>Smart Shopping
+          </a>
+        </li>
+        <li className="nav-item">
+          <a href="#" className={`nav-link ${activePage === 'food-waste' ? 'active' : ''}`} 
+             onClick={() => showPage('food-waste')}>
+            <i className="fas fa-recycle"></i>Waste Tracker
+          </a>
+        </li>
+        <li className="nav-item">
           <a href="#" className={`nav-link ${activePage === 'settings' ? 'active' : ''}`} 
              onClick={() => showPage('settings')}>
             <i className="fas fa-cog"></i>Settings
