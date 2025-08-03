@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="800" height="600" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="600" fill="url(#bg_gradient)"/>
+  
+  <!-- Abstract food shapes -->
+  <path d="M50 100C50 77.9086 67.9086 60 90 60H140C162.091 60 180 77.9086 180 100V150C180 172.091 162.091 190 140 190H90C67.9086 190 50 172.091 50 150V100Z" fill="white" fill-opacity="0.05"/>
+  
+  <circle cx="650" cy="150" r="70" fill="white" fill-opacity="0.05"/>
+  
+  <path d="M600 450C600 427.909 617.909 410 640 410H690C712.091 410 730 427.909 730 450V500C730 522.091 712.091 540 690 540H640C617.909 540 600 522.091 600 500V450Z" fill="white" fill-opacity="0.05"/>
+  
+  <circle cx="150" cy="450" r="70" fill="white" fill-opacity="0.05"/>
+  
+  <path d="M350 50C350 39.5076 358.508 31 369 31H431C441.493 31 450 39.5076 450 50V112C450 122.493 441.493 131 431 131H369C358.508 131 350 122.493 350 112V50Z" fill="white" fill-opacity="0.05"/>
+  
+  <circle cx="400" cy="300" r="100" fill="white" fill-opacity="0.05"/>
+  
+  <path d="M250 450C250 439.508 258.508 431 269 431H331C341.493 431 350 439.508 350 450V512C350 522.493 341.493 531 331 531H269C258.508 531 250 522.493 250 512V450Z" fill="white" fill-opacity="0.05"/>
+  
+  <circle cx="500" cy="500" r="40" fill="white" fill-opacity="0.05"/>
+  
+  <!-- Tiny food icons -->
+  <!-- Utensil -->
+  <path d="M160 250C160 244.477 164.477 240 170 240H190C195.523 240 200 244.477 200 250V290C200 295.523 195.523 300 190 300H170C164.477 300 160 295.523 160 290V250Z" fill="white" fill-opacity="0.05"/>
+  <rect x="170" y="240" width="10" height="60" fill="white" fill-opacity="0.05"/>
+  
+  <!-- Plate -->
+  <circle cx="500" cy="200" r="30" stroke="white" stroke-opacity="0.05" stroke-width="5"/>
+  
+  <!-- Cup -->
+  <path d="M600 250C600 244.477 604.477 240 610 240H630C635.523 240 640 244.477 640 250V280C640 285.523 635.523 290 630 290H610C604.477 290 600 285.523 600 280V250Z" fill="white" fill-opacity="0.05"/>
+  
+  <defs>
+    <linearGradient id="bg_gradient" x1="0" y1="0" x2="800" y2="600" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#667eea" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#764ba2" stop-opacity="0.9"/>
+    </linearGradient>
+  </defs>
+</svg>

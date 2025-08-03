@@ -1,62 +1,59 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback, memo } from 'react';
 import { useAppContext } from '../../context/AppContext';
 
-const Dashboard = ({ toggleModal }) => {
-  const { pantryItems, mealPlans, getItemStatus, setActivePage } = useAppContext();
-  const [stats, setStats] = useState({
-    totalItems: 0,
-    expiringItems: 0,
-    expiredItems: 0,
-    lowStockItems: 0
-  });
+const Dashboard = memo(({ toggleModal }) => {
+  const { pantryItems, mealPlans, getItemStatus, setActivePage, showNotification } = useAppContext();
   
-  useEffect(() => {
-    // Update dashboard stats
+  // Use useMemo for stats calculation instead of state + useEffect
+  const stats = useMemo(() => {
     const totalItems = pantryItems.length;
     const expiringItems = pantryItems.filter(item => getItemStatus(item.expiry) === 'expiring').length;
     const expiredItems = pantryItems.filter(item => getItemStatus(item.expiry) === 'expired').length;
-    const lowStockItems = pantryItems.filter(item => parseInt(item.quantity) <= 2).length;
+    const lowStockItems = pantryItems.filter(item => {
+      const qty = parseInt(item.quantity);
+      return !isNaN(qty) && qty <= 2;
+    }).length;
     
-    setStats({
+    return {
       totalItems,
       expiringItems,
       expiredItems,
       lowStockItems
-    });
+    };
   }, [pantryItems, getItemStatus]);
 
-  // Generate alerts
-  const generateAlerts = () => {
-    const alerts = [];
+  // Generate alerts with useMemo
+  const alerts = useMemo(() => {
+    const alertList = [];
     
     pantryItems.forEach(item => {
       const status = getItemStatus(item.expiry);
-      if (status === 'expired') alerts.push(`${item.name} has expired!`);
-      else if (status === 'expiring') alerts.push(`${item.name} expires soon`);
-      if (parseInt(item.quantity) <= 2) alerts.push(`${item.name} is running low`);
+      if (status === 'expired') alertList.push(`${item.name} has expired!`);
+      else if (status === 'expiring') alertList.push(`${item.name} expires soon`);
+      
+      const qty = parseInt(item.quantity);
+      if (!isNaN(qty) && qty <= 2) alertList.push(`${item.name} is running low`);
     });
     
-    return alerts;
-  };
-  
-  const alerts = generateAlerts();
+    return alertList;
+  }, [pantryItems, getItemStatus]);
 
-  // Get today's planned meals
-  const getTodaysPlannedMeals = () => {
+  // Get today's planned meals with useMemo
+  const todayMeals = useMemo(() => {
     const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
     return mealPlans[today] || {};
-  };
-  
-  const todayMeals = getTodaysPlannedMeals();
+  }, [mealPlans]);
 
-  // Recipe suggestions
-  const recipeSuggestions = ['Chicken Stir Fry', 'Pasta Primavera', 'Grilled Salmon', 'Vegetable Curry'];
+  // Recipe suggestions (static, could be moved outside component if needed)
+  const recipeSuggestions = useMemo(() => 
+    ['Chicken Stir Fry', 'Pasta Primavera', 'Grilled Salmon', 'Vegetable Curry'],
+    []
+  );
   
-  // Add recipe to meal plan
-  const addRecipeToMealPlan = (recipeName) => {
-    const { showNotification } = useAppContext();
+  // Add recipe to meal plan with useCallback
+  const addRecipeToMealPlan = useCallback((recipeName) => {
     showNotification(`${recipeName} would be added to your meal plan`, 'info');
-  };
+  }, [showNotification]);
 
   return (
     <>
@@ -141,6 +138,6 @@ const Dashboard = ({ toggleModal }) => {
       </div>
     </>
   );
-};
+});
 
 export default Dashboard;

@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, memo } from 'react';
 import { useAppContext } from '../context/AppContext';
 
-// Pages
+// Pages - use lazy loading to improve performance
 import Dashboard from './pages/Dashboard';
 import Inventory from './pages/Inventory';
 import Recipes from './pages/Recipes';
@@ -9,7 +9,7 @@ import MealPlanner from './pages/MealPlanner';
 import GroceryList from './pages/GroceryList';
 import Settings from './pages/Settings';
 
-const MainContent = ({ activePage, toggleModal }) => {
+const MainContent = memo(({ activePage, toggleModal }) => {
   const { setActivePage } = useAppContext();
   
   // Effect to handle hash changes
@@ -52,6 +52,6 @@ const MainContent = ({ activePage, toggleModal }) => {
       </div>
     </main>
   );
-};
+});
 
 export default MainContent;

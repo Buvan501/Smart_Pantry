@@ -5,12 +5,29 @@
     padding: 0;
     box-sizing: border-box;
 }
-
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
     color: #333;
+}
+
+/* Glassmorphic card for dashboard and sidebar */
+.glass-card {
+    background: rgba(255,255,255,0.15);
+    box-shadow: 0 8px 32px 0 rgba(31,38,135,0.37);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.18);
+}
+
+.icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    margin-right: 0.5rem;
 }
 
 .app-container {
@@ -110,32 +127,38 @@ body {
 /* ========== CARDS & COMPONENTS ========== */
 
 .card, .stat-card, .inventory-item, .recipe-card, .grocery-item {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(31,38,135,0.37);
     margin-bottom: 1.5rem;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card:hover, .stat-card:hover, .inventory-item:hover, .recipe-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 16px 48px rgba(31,38,135,0.5);
+    background: rgba(255,255,255,0.25);
 }
 
 .card-header {
     padding: 1.5rem 1.5rem 0;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
     margin-bottom: 1.5rem;
 }
 
 .card-header h2 {
-    color: #333;
+    color: white;
     font-size: 1.4rem;
     margin-bottom: 0.5rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .card-content {
     padding: 0 1.5rem 1.5rem;
+    color: rgba(255,255,255,0.9);
 }
 
 /* ========== DASHBOARD ========== */
@@ -155,22 +178,46 @@ body {
 }
 
 .stat-card {
-    padding: 1.5rem;
+    padding: 2rem 1.5rem;
     text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea, #764ba2, #667eea);
+    background-size: 200% 100%;
+    animation: shimmer 2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
 }
 
 .stat-number {
-    font-size: 2.5rem;
-    font-weight: bold;
-    color: #667eea;
+    font-size: 3rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #fff, #e0e7ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     margin-bottom: 0.5rem;
+    text-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
 .stat-label {
-    color: #666;
+    color: rgba(255,255,255,0.8);
     font-size: 0.9rem;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
+    font-weight: 600;
 }
 
 /* ========== INVENTORY ========== */
@@ -244,45 +291,57 @@ body {
 }
 
 .day-column {
-    background: white;
-    border-radius: 12px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 16px;
     padding: 1rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 32px rgba(31,38,135,0.37);
+    transition: all 0.3s ease;
+}
+
+.day-column:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(31,38,135,0.5);
 }
 
 .day-header {
     font-weight: bold;
     text-align: center;
     margin-bottom: 1rem;
-    color: #667eea;
-    padding: 0.5rem;
-    background: #f8f9ff;
-    border-radius: 8px;
+    color: white;
+    padding: 0.75rem;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+    border-radius: 12px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .meal-slot {
     margin-bottom: 1rem;
     padding: 1rem;
-    border: 2px dashed #ddd;
-    border-radius: 8px;
+    border: 2px dashed rgba(255,255,255,0.3);
+    border-radius: 12px;
     cursor: pointer;
     transition: all 0.3s ease;
     min-height: 80px;
+    background: rgba(255,255,255,0.05);
 }
 
 .meal-slot:hover {
-    border-color: #667eea;
-    background: #f8f9ff;
+    border-color: rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.1);
+    transform: scale(1.02);
 }
 
 .meal-type {
     font-weight: 600;
-    color: #333;
+    color: white;
     margin-bottom: 0.5rem;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 
 .meal-content {
-    color: #666;
+    color: rgba(255,255,255,0.8);
     font-size: 0.9rem;
 }
 
@@ -333,40 +392,55 @@ body {
 .btn, .btn-primary, .btn-secondary, .btn-danger, .btn-small {
     padding: 0.75rem 1.5rem;
     border: none;
-    border-radius: 8px;
-    font-weight: 500;
+    border-radius: 12px;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     text-decoration: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s;
+}
+
+.btn:hover::before {
+    left: 100%;
 }
 
 .btn-primary {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
 .btn-secondary {
-    background: #6c757d;
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
     color: white;
+    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.4);
 }
 
 .btn-danger {
-    background: #dc3545;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
     color: white;
-}
-
-.btn-small {
-    padding: 0.5rem 1rem;
-    font-size: 0.8rem;
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
 }
 
 .btn:hover, .btn-primary:hover, .btn-secondary:hover, .btn-danger:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
 .action-buttons {
@@ -640,13 +714,21 @@ body {
 
 .page-title {
     color: white;
-    font-size: 2rem;
+    font-size: 2.5rem;
     margin-bottom: 0.5rem;
+    font-weight: 800;
+    text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    background: linear-gradient(135deg, #fff, #e0e7ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .page-subtitle {
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.1rem;
+    font-weight: 500;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .card-grid, .recipe-grid, .settings-grid {

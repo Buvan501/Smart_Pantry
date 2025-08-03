@@ -1,24 +1,45 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
 import './styles.css';
 
-// Components
-import Sidebar from './components/Sidebar';
-import MainContent from './components/MainContent';
-import AuthModal from './components/modals/AuthModal';
-import AddItemModal from './components/modals/AddItemModal';
-import EditItemModal from './components/modals/EditItemModal';
-import RecipeSelectionModal from './components/modals/RecipeSelectionModal';
-import ExportMealPlanModal from './components/modals/ExportMealPlanModal';
-import EditProfileModal from './components/modals/EditProfileModal';
-import AddGroceryItemModal from './components/modals/AddGroceryItemModal';
-import Notification from './components/Notification';
-
 // Context
 import { AppProvider } from './context/AppContext';
+import { NotificationProvider } from './components/NotificationContainer';
+
+// Base Components
+import Sidebar from './components/Sidebar';
+import MainContent from './components/MainContent';
+import Notification from './components/Notification';
+import ErrorBoundary from './components/ErrorBoundary';
+
+// Lazy-loaded Modal Components
+const AuthModal = lazy(() => import('./components/modals/AuthModal'));
+const AddItemModal = lazy(() => import('./components/modals/AddItemModal'));
+const EditItemModal = lazy(() => import('./components/modals/EditItemModal'));
+const RecipeSelectionModal = lazy(() => import('./components/modals/RecipeSelectionModal'));
+const ExportMealPlanModal = lazy(() => import('./components/modals/ExportMealPlanModal'));
+const EditProfileModal = lazy(() => import('./components/modals/EditProfileModal'));
+const AddGroceryItemModal = lazy(() => import('./components/modals/AddGroceryItemModal'));
+
+// Loading Fallback
+const LoadingFallback = () => (
+  <div className="modal-loading-fallback" aria-label="Loading content">
+    <div className="spinner"></div>
+    <p>Loading...</p>
+  </div>
+);
 
 function App() {
-  const [currentUser, setCurrentUser] = useState(JSON.parse(localStorage.getItem('smartPantryUser') || 'null'));
+  // User state with safe parsing
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('smartPantryUser') || 'null');
+    } catch (error) {
+      console.error('Error parsing user data from localStorage:', error);
+      return null;
+    }
+  });
+  
   const [activePage, setActivePage] = useState('dashboard');
   const [notification, setNotification] = useState(null);
   const [modals, setModals] = useState({
@@ -34,26 +55,29 @@ function App() {
   const [currentEditingItem, setCurrentEditingItem] = useState(null);
   const [currentMealSlot, setCurrentMealSlot] = useState(null);
 
-  // Show notification
-  const showNotification = (message, type = 'success', duration = 3000) => {
+  // Show notification with memoization
+  const showNotification = useCallback((message, type = 'success', duration = 3000) => {
     setNotification({ message, type, id: Date.now() });
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       setNotification(null);
     }, duration);
-  };
+    
+    // Clear timeout if component unmounts
+    return () => clearTimeout(timer);
+  }, []);
 
-  // Modal controls
-  const toggleModal = (modalName, isOpen = null) => {
+  // Modal controls with memoization
+  const toggleModal = useCallback((modalName, isOpen = null) => {
     setModals(prevModals => ({
       ...prevModals,
       [modalName]: isOpen !== null ? isOpen : !prevModals[modalName]
     }));
-  };
+  }, []);
 
-  // Toggle sidebar for mobile
-  const toggleSidebar = () => {
+  // Toggle sidebar for mobile with memoization
+  const toggleSidebar = useCallback(() => {
     setSidebarVisible(prev => !prev);
-  };
+  }, []);
 
   // Check auth status on load
   useEffect(() => {
@@ -77,87 +101,118 @@ function App() {
   }, []);
 
   return (
-    <AppProvider value={{
-      currentUser,
-      setCurrentUser,
-      activePage,
-      setActivePage,
-      showNotification,
-      toggleModal,
-      currentEditingItem,
-      setCurrentEditingItem,
-      currentMealSlot,
-      setCurrentMealSlot
-    }}>
-      <Router>
-        <div className="app-container">
-          <button className="mobile-toggle" onClick={toggleSidebar}>
-            <i className="fas fa-bars"></i>
-          </button>
-          
-          <Sidebar 
-            isVisible={sidebarVisible} 
-            toggleSidebar={toggleSidebar}
-            currentUser={currentUser}
-            toggleModal={toggleModal}
-          />
-          
-          <MainContent 
-            activePage={activePage} 
-            setActivePage={setActivePage}
-            toggleModal={toggleModal}
-          />
-        </div>
+    <ErrorBoundary>
+      <AppProvider value={{
+        currentUser,
+        setCurrentUser,
+        activePage,
+        setActivePage,
+        showNotification,
+        toggleModal,
+        currentEditingItem,
+        setCurrentEditingItem,
+        currentMealSlot,
+        setCurrentMealSlot
+      }}>
+        <Router>
+          <div className="app-container" role="application">
+            <button 
+              className="mobile-toggle" 
+              onClick={toggleSidebar}
+              aria-label="Toggle sidebar menu"
+              aria-expanded={sidebarVisible}
+            >
+              <i className="fas fa-bars" aria-hidden="true"></i>
+            </button>
+            
+            <Sidebar 
+              isVisible={sidebarVisible} 
+              toggleSidebar={toggleSidebar}
+              currentUser={currentUser}
+              toggleModal={toggleModal}
+            />
+            
+            <ErrorBoundary fallback={(error) => (
+              <div className="main-error-container">
+                <h2>Error loading content</h2>
+                <p>Sorry, we encountered a problem loading this page.</p>
+                <button onClick={() => window.location.reload()}>Reload Page</button>
+              </div>
+            )}>
+              <MainContent 
+                activePage={activePage} 
+                setActivePage={setActivePage}
+                toggleModal={toggleModal}
+              />
+            </ErrorBoundary>
+          </div>
 
-        {/* Modals */}
-        <AuthModal 
-          isOpen={modals.authModal} 
-          onClose={() => toggleModal('authModal', false)}
-        />
-        
-        <AddItemModal 
-          isOpen={modals.addItemModal} 
-          onClose={() => toggleModal('addItemModal', false)}
-        />
-        
-        <EditItemModal 
-          isOpen={modals.editItemModal} 
-          onClose={() => toggleModal('editItemModal', false)}
-          itemToEdit={currentEditingItem}
-        />
-        
-        <RecipeSelectionModal 
-          isOpen={modals.recipeSelectionModal} 
-          onClose={() => toggleModal('recipeSelectionModal', false)}
-          mealSlot={currentMealSlot}
-        />
-        
-        <ExportMealPlanModal 
-          isOpen={modals.exportMealPlanModal} 
-          onClose={() => toggleModal('exportMealPlanModal', false)}
-        />
-        
-        <EditProfileModal 
-          isOpen={modals.editProfileModal} 
-          onClose={() => toggleModal('editProfileModal', false)}
-          currentUser={currentUser}
-          setCurrentUser={setCurrentUser}
-        />
-        
-        <AddGroceryItemModal 
-          isOpen={modals.addGroceryItemModal} 
-          onClose={() => toggleModal('addGroceryItemModal', false)}
-        />
-        
-        {notification && (
-          <Notification 
-            message={notification.message} 
-            type={notification.type} 
-            id={notification.id}
-          />
-        )}
-      </Router>
-    </AppProvider>
+          {/* Modals with Suspense for lazy loading */}
+          <Suspense fallback={<LoadingFallback />}>
+            {modals.authModal && (
+              <AuthModal 
+                isOpen={modals.authModal} 
+                onClose={() => toggleModal('authModal', false)}
+              />
+            )}
+            
+            {modals.addItemModal && (
+              <AddItemModal 
+                isOpen={modals.addItemModal} 
+                onClose={() => toggleModal('addItemModal', false)}
+              />
+            )}
+            
+            {modals.editItemModal && (
+              <EditItemModal 
+                isOpen={modals.editItemModal} 
+                onClose={() => toggleModal('editItemModal', false)}
+                itemToEdit={currentEditingItem}
+              />
+            )}
+            
+            {modals.recipeSelectionModal && (
+              <RecipeSelectionModal 
+                isOpen={modals.recipeSelectionModal} 
+                onClose={() => toggleModal('recipeSelectionModal', false)}
+                mealSlot={currentMealSlot}
+              />
+            )}
+            
+            {modals.exportMealPlanModal && (
+              <ExportMealPlanModal 
+                isOpen={modals.exportMealPlanModal} 
+                onClose={() => toggleModal('exportMealPlanModal', false)}
+              />
+            )}
+            
+            {modals.editProfileModal && (
+              <EditProfileModal 
+                isOpen={modals.editProfileModal} 
+                onClose={() => toggleModal('editProfileModal', false)}
+                currentUser={currentUser}
+                setCurrentUser={setCurrentUser}
+              />
+            )}
+            
+            {modals.addGroceryItemModal && (
+              <AddGroceryItemModal 
+                isOpen={modals.addGroceryItemModal} 
+                onClose={() => toggleModal('addGroceryItemModal', false)}
+              />
+            )}
+          </Suspense>
+          
+          {notification && (
+            <Notification 
+              message={notification.message} 
+              type={notification.type} 
+              id={notification.id}
+            />
+          )}
+        </Router>
+      </AppProvider>
+    </ErrorBoundary>
   );
 }
 

@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, memo } from 'react';
 import { useAppContext } from '../../context/AppContext';
 
-const Inventory = ({ toggleModal }) => {
+const Inventory = memo(({ toggleModal }) => {
   const { pantryItems, setPantryItems, getItemStatus, setCurrentEditingItem, showNotification } = useAppContext();
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredItems, setFilteredItems] = useState([]);
   
-  useEffect(() => {
-    // Apply filters
+  // Use useMemo for filteredItems instead of state to avoid unnecessary re-renders
+  const filteredItems = useMemo(() => {
     let items = [...pantryItems];
     
     if (searchTerm) {
@@ -21,24 +20,24 @@ const Inventory = ({ toggleModal }) => {
       items = items.filter(item => item.category === filter);
     }
     
-    setFilteredItems(items);
+    return items;
   }, [pantryItems, filter, searchTerm]);
   
-  const editInventoryItem = (itemId) => {
+  const editInventoryItem = useCallback((itemId) => {
     const item = pantryItems.find(i => i.id === itemId);
     if (item) {
       setCurrentEditingItem(item);
       toggleModal('editItemModal', true);
     }
-  };
+  }, [pantryItems, setCurrentEditingItem, toggleModal]);
   
-  const deleteInventoryItem = (itemId) => {
+  const deleteInventoryItem = useCallback((itemId) => {
     const item = pantryItems.find(i => i.id === itemId);
     if (item && window.confirm(`Are you sure you want to delete ${item.name}?`)) {
-      setPantryItems(pantryItems.filter(i => i.id !== itemId));
+      setPantryItems(prev => prev.filter(i => i.id !== itemId));
       showNotification(`${item.name} deleted successfully!`, 'success');
     }
-  };
+  }, [pantryItems, setPantryItems, showNotification]);
 
   return (
     <>
@@ -120,6 +119,6 @@ const Inventory = ({ toggleModal }) => {
       </div>
     </>
   );
-};
+});
 
 export default Inventory;

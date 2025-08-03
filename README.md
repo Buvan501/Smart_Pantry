@@ -1,6 +1,35 @@
-# Getting Started with Create React App
+# Smart Pantry Application
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Smart Pantry is a modern React-based application that helps users manage their kitchen inventory, plan meals, and create grocery lists efficiently.
+
+![Smart Pantry Logo](public/assets/logo.svg)
+
+## Features
+
+- **Dashboard**: Quick overview of your pantry status, expiring items, and meal plans
+- **Inventory Management**: Keep track of all your food items with expiry dates
+- **Meal Planning**: Plan your meals for the week with recipes from your collection
+- **Recipe Storage**: Save and organize your favorite recipes
+- **Grocery List**: Generate shopping lists based on your meal plans and inventory
+
+## Design Assets
+
+This application includes a collection of custom-designed assets:
+
+### Icons
+- Feature icons (dashboard, inventory, recipes, meal planner, grocery list)
+- Food category icons (dairy, pantry, produce, meat, frozen, beverage, spices)
+- Status indicators (fresh, expiring, expired)
+
+### Illustrations
+- Welcome screen
+- Empty state indicators
+- Loading animations
+
+### Color Scheme
+- Primary: #667eea (Blue/Purple)
+- Secondary: #764ba2 (Purple)
+- Accent colors for categories and status indicators
 
 ## Available Scripts
 

@@ -1,17 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import { useAppContext } from '../../context/AppContext';
 
-const Settings = () => {
+const Settings = memo(() => {
   const { 
     pantryItems, 
     mealPlans, 
     groceryList, 
     currentUser, 
     setCurrentUser, 
-    showNotification 
+    showNotification,
+    setActivePage,
+    toggleModal 
   } = useAppContext();
   
-  const [settings, setSettings] = useState(
+  const [settings, setSettings] = useState(() =>
     JSON.parse(localStorage.getItem('smartPantrySettings') || '{}')
   );
   
@@ -19,7 +21,7 @@ const Settings = () => {
     localStorage.setItem('smartPantrySettings', JSON.stringify(settings));
   }, [settings]);
   
-  const toggleSetting = (settingName) => {
+  const toggleSetting = useCallback((settingName) => {
     setSettings(prev => ({
       ...prev,
       [settingName]: !prev[settingName]
@@ -31,9 +33,9 @@ const Settings = () => {
       isActive ? 'success' : 'info', 
       2000
     );
-  };
+  }, [settings, showNotification]);
   
-  const exportData = () => {
+  const exportData = useCallback(() => {
     const data = { 
       pantryItems, 
       mealPlans, 
@@ -52,9 +54,9 @@ const Settings = () => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     showNotification('Data exported successfully!', 'success');
-  };
+  }, [pantryItems, mealPlans, groceryList, currentUser, showNotification]);
   
-  const importData = () => {
+  const importData = useCallback(() => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json';
@@ -74,23 +76,35 @@ const Settings = () => {
       }
     };
     input.click();
-  };
+  }, [showNotification]);
   
-  const resetApp = () => {
+  const resetApp = useCallback(() => {
     if (window.confirm('Are you sure you want to reset all data? This cannot be undone.')) {
       localStorage.clear();
       window.location.reload();
     }
-  };
+  }, []);
   
-  const deleteAccount = () => {
+  const deleteAccount = useCallback(() => {
     if (window.confirm('Are you sure you want to delete your account? This will remove all your data and cannot be undone.')) {
       localStorage.clear();
       setCurrentUser(null);
       showNotification('Account deleted. You will be redirected to the login page.', 'info');
-      setTimeout(() => window.location.reload(), 2000);
+      const timer = setTimeout(() => window.location.reload(), 2000);
+      return () => clearTimeout(timer);
     }
-  };
+  }, [setCurrentUser, showNotification]);
+  
+  const logout = useCallback(() => {
+    localStorage.removeItem('smartPantryUser');
+    setCurrentUser(null);
+    toggleModal('authModal', true);
+    showNotification('Logged out successfully', 'info');
+  }, [setCurrentUser, toggleModal, showNotification]);
+  
+  const openEditProfileModal = useCallback(() => {
+    toggleModal('editProfileModal', true);
+  }, [toggleModal]);
 
   return (
     <>
@@ -145,9 +159,37 @@ const Settings = () => {
             </div>
           </div>
         </div>
+        
+        <div className="card">
+          <div className="card-header"><h2>Account</h2></div>
+          <div className="card-content">
+            <div className="action-buttons">
+              <button 
+                className="btn btn-primary" 
+                onClick={openEditProfileModal}
+                style={{
+                  backgroundColor: '#667eea',
+                  borderColor: '#667eea'
+                }}
+              >
+                <i className="fas fa-user-edit"></i>Edit Profile
+              </button>
+              <button 
+                className="btn btn-danger" 
+                onClick={logout}
+                style={{
+                  backgroundColor: 'rgba(220, 53, 69, 0.9)',
+                  borderColor: 'rgba(220, 53, 69, 1)'
+                }}
+              >
+                <i className="fas fa-sign-out-alt"></i>Logout
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </>
   );
-};
+});
 
 export default Settings;

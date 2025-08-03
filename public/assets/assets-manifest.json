@@ -1,0 +1,61 @@
+{
+  "logo": {
+    "main": "/assets/logo.svg",
+    "favicon": "/favicon.ico"
+  },
+  "backgrounds": {
+    "pattern": "/assets/bg-pattern.svg"
+  },
+  "icons": {
+    "features": {
+      "dashboard": "/assets/icons/dashboard.svg",
+      "inventory": "/assets/icons/inventory.svg",
+      "recipes": "/assets/icons/recipes.svg",
+      "meal_planner": "/assets/icons/meal-planner.svg",
+      "grocery_list": "/assets/icons/grocery-list.svg"
+    },
+    "categories": {
+      "dairy": "/assets/category-icons/dairy.svg",
+      "pantry": "/assets/category-icons/pantry.svg",
+      "produce": "/assets/category-icons/produce.svg",
+      "meat": "/assets/category-icons/meat.svg",
+      "frozen": "/assets/category-icons/frozen.svg",
+      "beverage": "/assets/category-icons/beverage.svg",
+      "spices": "/assets/category-icons/spices.svg"
+    },
+    "status": {
+      "fresh": "/assets/icons/status-fresh.svg",
+      "expiring": "/assets/icons/status-expiring.svg",
+      "expired": "/assets/icons/status-expired.svg"
+    }
+  },
+  "illustrations": {
+    "empty": "/assets/images/empty-pantry.svg",
+    "welcome": "/assets/images/welcome.svg",
+    "loading": "/assets/images/loading-spinner.svg"
+  },
+  "colors": {
+    "primary": "#667eea",
+    "secondary": "#764ba2",
+    "success": "#4CAF50",
+    "warning": "#FF9800",
+    "danger": "#F44336",
+    "info": "#2196F3",
+    "light": "#f7fafc",
+    "dark": "#2d3748"
+  },
+  "status_colors": {
+    "fresh": "#4CAF50",
+    "expiring": "#FF9800",
+    "expired": "#F44336"
+  },
+  "category_colors": {
+    "dairy": "#0288D1",
+    "pantry": "#4CAF50",
+    "produce": "#FF9800",
+    "meat": "#F44336",
+    "frozen": "#9C27B0",
+    "beverage": "#00BCD4",
+    "spices": "#FFC107"
+  }
+}
