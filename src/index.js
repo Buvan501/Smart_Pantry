@@ -11,3 +11,10 @@ root.render(
     <App />
   </React.StrictMode>
 );
+
+// Register service worker only in production
+if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+  });
+}

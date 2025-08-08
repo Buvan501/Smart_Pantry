@@ -12,20 +12,20 @@
     "lucide-react": "^0.536.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^7.7.1",
+    "react-router-dom": "^6.23.1",
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build && npm run analyze",
-    "test": "react-scripts test",
+    "start": "craco start",
+    "build": "craco build && npm run analyze",
+    "test": "craco test",
     "eject": "react-scripts eject",
     "analyze": "source-map-explorer 'build/static/js/*.js'",
     "lint": "eslint src/**/*.{js,jsx}",
     "format": "prettier --write src/**/*.{js,jsx,css}",
     "serve": "serve -s build",
-    "build:prod": "GENERATE_SOURCEMAP=false react-scripts build"
+    "build:prod": "set GENERATE_SOURCEMAP=false&&craco build"
   },
   "eslintConfig": {
     "extends": [

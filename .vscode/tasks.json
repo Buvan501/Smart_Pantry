@@ -6,11 +6,11 @@
 			"type": "shell",
 			"command": "npm",
 			"args": [
+				"run",
 				"start"
 			],
 			"group": "build",
 			"isBackground": true,
-			"problemMatcher": [],
 			"options": {
 				"shell": {
 					"executable": "cmd.exe"
@@ -24,7 +24,6 @@
 			"args": [
 				"install"
 			],
-			"group": "none",
 			"options": {
 				"shell": {
 					"executable": "cmd.exe"

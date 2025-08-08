@@ -2,8 +2,13 @@ import React, { useState, useMemo } from 'react';
 import { useAppContext } from '../../context/AppContext';
 
 const Analytics = () => {
-  const { pantryItems, groceryList, mealPlans } = useAppContext();
+  const { pantryItems, groceryList, mealPlans, getItemStatus } = useAppContext();
   const [selectedPeriod, setSelectedPeriod] = useState('week');
+
+  // Load historical metrics
+  const history = useMemo(() => {
+    try { return JSON.parse(localStorage.getItem('sp_metrics_history') || '[]'); } catch { return []; }
+  }, []);
 
   // Calculate comprehensive analytics
   const analytics = useMemo(() => {
@@ -50,15 +55,26 @@ const Analytics = () => {
         ((Object.keys(mealPlans).length / 7) * 100).toFixed(1) : 0
     };
 
+    // Most wasted (based on currently expired)
+    const wasteMap = new Map();
+    pantryItems.forEach(i => {
+      if (getItemStatus(i.expiry) === 'expired') {
+        const key = i.name.toLowerCase();
+        wasteMap.set(key, (wasteMap.get(key)||0) + 1);
+      }
+    });
+    const mostWasted = Array.from(wasteMap.entries()).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([name,count])=>({name, count}));
+
     return {
       categoryData,
       expiryAnalysis,
       shoppingPatterns,
       mealPlanningData,
+      mostWasted,
       totalItems: pantryItems.length,
       groceryItems: groceryList.length
     };
-  }, [pantryItems, groceryList, mealPlans]);
+  }, [pantryItems, groceryList, mealPlans, getItemStatus]);
 
   // Chart data for visualization
   const categoryChartData = Object.entries(analytics.categoryData).map(([category, count]) => ({
@@ -66,6 +82,17 @@ const Analytics = () => {
     count,
     percentage: ((count / analytics.totalItems) * 100).toFixed(1)
   }));
+
+  const trend = useMemo(() => {
+    const last7 = history.slice(-7);
+    return {
+      total: last7.map(h=>h.totals.total),
+      expiring: last7.map(h=>h.totals.expiring),
+      expired: last7.map(h=>h.totals.expired),
+      lowStock: last7.map(h=>h.totals.lowStock),
+      labels: last7.map(h=>h.date.split(' ').slice(0,2).join(' '))
+    };
+  }, [history]);
 
   return (
     <div className="analytics-page">
@@ -159,6 +186,23 @@ const Analytics = () => {
           </div>
         </div>
 
+        {/* Trends */}
+        <div className="analytics-section">
+          <h3>📈 7-Day Trends</h3>
+          <div className="trend-list">
+            {trend.labels.length > 0 ? (
+              <>
+                <div className="trend-row"><strong>Total:</strong> {trend.total.join(' → ')}</div>
+                <div className="trend-row"><strong>Expiring:</strong> {trend.expiring.join(' → ')}</div>
+                <div className="trend-row"><strong>Expired:</strong> {trend.expired.join(' → ')}</div>
+                <div className="trend-row"><strong>Low Stock:</strong> {trend.lowStock.join(' → ')}</div>
+              </>
+            ) : (
+              <div>No historical data yet</div>
+            )}
+          </div>
+        </div>
+
         {/* Shopping Insights */}
         <div className="analytics-section">
           <h3>🛍️ Shopping Insights</h3>
@@ -180,6 +224,20 @@ const Analytics = () => {
               <span>{analytics.mealPlanningData.daysWithPlans}/7</span>
             </div>
           </div>
+        </div>
+
+        {/* Most Wasted Items */}
+        <div className="analytics-section">
+          <h3>🗑️ Most Wasted Items</h3>
+          {analytics.mostWasted.length > 0 ? (
+            <ul className="most-wasted-list">
+              {analytics.mostWasted.map(i => (
+                <li key={i.name}>{i.name} — {i.count}</li>
+              ))}
+            </ul>
+          ) : (
+            <div>No expired items yet</div>
+          )}
         </div>
 
         {/* Recommendations */}

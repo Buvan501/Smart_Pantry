@@ -5,6 +5,20 @@ const SmartShoppingAssistant = ({ toggleModal }) => {
   const { pantryItems, groceryList, setGroceryList, showNotification } = useAppContext();
   const [selectedSuggestions, setSelectedSuggestions] = useState(new Set());
 
+  const userPreferences = useMemo(() => {
+    try { return JSON.parse(localStorage.getItem('userPreferences') || '{}'); } catch { return {}; }
+  }, []);
+
+  const hasRestriction = (catOrName) => {
+    const dr = (userPreferences.dietaryRestrictions||[]).map(s=>s.toLowerCase());
+    if (dr.includes('vegetarian') || dr.includes('vegan')) {
+      if (typeof catOrName === 'string') {
+        return /meat|fish|poultry|salmon|chicken/i.test(catOrName);
+      }
+    }
+    return false;
+  };
+
   // Smart suggestions based on low stock and commonly used items
   const suggestions = useMemo(() => {
     const lowStockItems = pantryItems.filter(item => {
@@ -12,15 +26,21 @@ const SmartShoppingAssistant = ({ toggleModal }) => {
       return qty <= 2;
     });
 
+    const healthyBoost = (userPreferences.goals||[]).includes('eat-healthier');
+
     const frequentItems = [
       { name: 'Milk', category: 'dairy', priority: 'high' },
-      { name: 'Bread', category: 'pantry', priority: 'medium' },
+      { name: 'Bread', category: 'grains', priority: 'medium' },
       { name: 'Eggs', category: 'dairy', priority: 'high' },
       { name: 'Chicken Breast', category: 'meat', priority: 'medium' },
-      { name: 'Rice', category: 'pantry', priority: 'low' },
-      { name: 'Onions', category: 'produce', priority: 'medium' },
-      { name: 'Tomatoes', category: 'produce', priority: 'medium' },
-      { name: 'Olive Oil', category: 'pantry', priority: 'low' }
+      { name: 'Rice', category: 'grains', priority: 'low' },
+      { name: 'Onions', category: 'vegetables', priority: 'medium' },
+      { name: 'Tomatoes', category: 'vegetables', priority: 'medium' },
+      { name: 'Olive Oil', category: 'condiments', priority: 'low' },
+      ...(healthyBoost ? [
+        { name: 'Spinach', category: 'vegetables', priority: 'high' },
+        { name: 'Apples', category: 'fruits', priority: 'medium' }
+      ] : [])
     ];
 
     const smartSuggestions = [
@@ -31,6 +51,7 @@ const SmartShoppingAssistant = ({ toggleModal }) => {
         reason: 'Low stock'
       })),
       ...frequentItems.filter(freq => 
+        !hasRestriction(freq.category) &&
         !pantryItems.some(pantry => 
           pantry.name.toLowerCase().includes(freq.name.toLowerCase())
         ) &&
@@ -39,12 +60,12 @@ const SmartShoppingAssistant = ({ toggleModal }) => {
         )
       ).map(item => ({
         ...item,
-        reason: 'Commonly needed'
+        reason: healthyBoost && (item.category === 'vegetables' || item.category === 'fruits') ? 'Healthy choice' : 'Commonly needed'
       }))
     ];
 
-    return smartSuggestions.slice(0, 10);
-  }, [pantryItems, groceryList]);
+    return smartSuggestions.slice(0, 12);
+  }, [pantryItems, groceryList, userPreferences]);
 
   const toggleSuggestion = (index) => {
     const newSelected = new Set(selectedSuggestions);

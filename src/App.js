@@ -11,6 +11,7 @@ import MainContent from './components/MainContent';
 import Notification from './components/Notification';
 import ErrorBoundary from './components/ErrorBoundary';
 import WelcomeOnboarding from './components/WelcomeOnboarding';
+import NotificationScheduler from './components/NotificationScheduler';
 
 // Lazy-loaded Modal Components
 const AuthModal = lazy(() => import('./components/modals/AuthModal'));
@@ -121,6 +122,8 @@ function App() {
           {showOnboarding && (
             <WelcomeOnboarding onComplete={() => setShowOnboarding(false)} />
           )}
+          
+          <NotificationScheduler />
           
           <div className="app-container" role="application">
             <button 

@@ -10,7 +10,10 @@ const Settings = memo(() => {
     setCurrentUser, 
     showNotification,
     setActivePage,
-    toggleModal 
+    toggleModal,
+    setPantryItems,
+    setMealPlans,
+    setGroceryList
   } = useAppContext();
   
   const [settings, setSettings] = useState(() =>
@@ -20,6 +23,24 @@ const Settings = memo(() => {
   useEffect(() => {
     localStorage.setItem('smartPantrySettings', JSON.stringify(settings));
   }, [settings]);
+  
+  const requestBrowserNotifications = useCallback(async () => {
+    if (!('Notification' in window)) {
+      showNotification('Browser notifications not supported', 'error');
+      return;
+    }
+    try {
+      const res = await Notification.requestPermission();
+      if (res === 'granted') {
+        new Notification('Smart Pantry', { body: 'Notifications enabled!'});
+        showNotification('Notifications enabled', 'success');
+      } else if (res === 'denied') {
+        showNotification('Notifications denied in browser', 'warning');
+      }
+    } catch {
+      showNotification('Failed to request notifications', 'error');
+    }
+  }, [showNotification]);
   
   const toggleSetting = useCallback((settingName) => {
     setSettings(prev => ({
@@ -41,7 +62,8 @@ const Settings = memo(() => {
       mealPlans, 
       groceryItems: groceryList, 
       userProfile: currentUser, 
-      exportDate: new Date().toISOString() 
+      exportDate: new Date().toISOString(),
+      version: 1
     };
     
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -66,8 +88,18 @@ const Settings = memo(() => {
         const reader = new FileReader();
         reader.onload = function(e) {
           try {
-            // This would be handled by the appropriate context functions in a real app
-            showNotification('Data imported successfully!', 'success');
+            const json = JSON.parse(e.target.result);
+            if (!json || typeof json !== 'object') throw new Error('Invalid file');
+            if (!Array.isArray(json.pantryItems) || !json.mealPlans || !Array.isArray(json.groceryItems)) {
+              throw new Error('Missing required keys');
+            }
+            if (window.confirm('Import data and replace current items?')) {
+              setPantryItems(json.pantryItems);
+              setMealPlans(json.mealPlans);
+              setGroceryList(json.groceryItems);
+              if (json.userProfile) setCurrentUser(json.userProfile);
+              showNotification('Data imported successfully!', 'success');
+            }
           } catch (error) {
             showNotification('Error importing data', 'error');
           }
@@ -76,7 +108,7 @@ const Settings = memo(() => {
       }
     };
     input.click();
-  }, [showNotification]);
+  }, [setPantryItems, setMealPlans, setGroceryList, setCurrentUser, showNotification]);
   
   const resetApp = useCallback(() => {
     if (window.confirm('Are you sure you want to reset all data? This cannot be undone.')) {
@@ -119,6 +151,13 @@ const Settings = memo(() => {
           <div className="card-content">
             <div className="setting-item">
               <div>
+                <strong>Enable Browser Notifications</strong>
+                <p>Allow Smart Pantry to send alerts</p>
+              </div>
+              <button className="btn btn-secondary" onClick={requestBrowserNotifications}>Enable</button>
+            </div>
+            <div className="setting-item">
+              <div>
                 <strong>Expiry Alerts</strong>
                 <p>Get notified when items are about to expire</p>
               </div>
@@ -135,6 +174,16 @@ const Settings = memo(() => {
               <div 
                 className={`toggle ${settings['Low Stock Alerts'] ? 'active' : ''}`} 
                 onClick={() => toggleSetting('Low Stock Alerts')}
+              ></div>
+            </div>
+            <div className="setting-item">
+              <div>
+                <strong>Daily Digest</strong>
+                <p>Get a daily summary of expiring and low-stock items</p>
+              </div>
+              <div 
+                className={`toggle ${settings['Daily Digest'] ? 'active' : ''}`} 
+                onClick={() => toggleSetting('Daily Digest')}
               ></div>
             </div>
           </div>

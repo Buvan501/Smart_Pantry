@@ -1,15 +1,15 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, forwardRef, useImperativeHandle, useMemo, useRef, useContext, createContext } from 'react';
 import Notification from './Notification';
 
 /**
  * NotificationContainer manages multiple notifications
  * Provides an API to create and remove notifications of different types
  */
-const NotificationContainer = () => {
+const NotificationContainer = forwardRef((props, ref) => {
   const [notifications, setNotifications] = useState([]);
 
   // Generate a unique ID for each notification
-  const generateId = () => `notification_${Date.now()}`;
+  const generateId = () => `notification_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
 
   // Add a notification
   const addNotification = useCallback((options) => {
@@ -41,19 +41,19 @@ const NotificationContainer = () => {
   }, []);
 
   // Helper functions for common notification types
-  const notify = {
+  const notify = useMemo(() => ({
     success: (message, options = {}) => addNotification({ message, type: 'success', ...options }),
     error: (message, options = {}) => addNotification({ message, type: 'error', ...options }),
     warning: (message, options = {}) => addNotification({ message, type: 'warning', ...options }),
     info: (message, options = {}) => addNotification({ message, type: 'info', ...options })
-  };
+  }), [addNotification]);
 
-  // Expose the notification API to parent components
-  React.useImperativeHandle(React.useRef(), () => ({
+  // Expose API via ref
+  useImperativeHandle(ref, () => ({
     addNotification,
     removeNotification,
     ...notify
-  }));
+  }), [addNotification, removeNotification, notify]);
 
   return (
     <>
@@ -72,15 +72,15 @@ const NotificationContainer = () => {
       ))}
     </>
   );
-};
+});
 
 // Create a context for accessing notifications anywhere in the app
-const NotificationContext = React.createContext(null);
+const NotificationContext = createContext(null);
 
 export const NotificationProvider = ({ children }) => {
-  const notificationRef = React.useRef();
+  const notificationRef = useRef();
 
-  const value = React.useMemo(() => ({
+  const value = useMemo(() => ({
     // Forward these methods to the NotificationContainer
     success: (message, options) => notificationRef.current?.success(message, options),
     error: (message, options) => notificationRef.current?.error(message, options),
@@ -100,7 +100,7 @@ export const NotificationProvider = ({ children }) => {
 
 // Custom hook to use notifications
 export const useNotification = () => {
-  const context = React.useContext(NotificationContext);
+  const context = useContext(NotificationContext);
   if (!context) {
     throw new Error('useNotification must be used within a NotificationProvider');
   }

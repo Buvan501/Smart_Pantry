@@ -3,7 +3,7 @@ import { useAppContext } from '../../context/AppContext';
 import GroceryItem from '../GroceryItem';
 
 const GroceryList = memo(({ toggleModal }) => {
-  const { groceryList, setGroceryList, showNotification } = useAppContext();
+  const { groceryList, setGroceryList, showNotification, pantryItems, setPantryItems } = useAppContext();
   const [customItem, setCustomItem] = useState('');
   
   const addCustomItem = useCallback(() => {
@@ -65,12 +65,28 @@ const GroceryList = memo(({ toggleModal }) => {
     }
   }, [groceryList, setGroceryList, showNotification]);
   
+  // Group items by category and compute subtotals
+  const grouped = useMemo(() => {
+    const map = new Map();
+    for (const item of groceryList) {
+      const key = item.category || 'other';
+      if (!map.has(key)) map.set(key, []);
+      map.get(key).push(item);
+    }
+    return Array.from(map.entries()).sort((a,b)=>a[0].localeCompare(b[0]));
+  }, [groceryList]);
+
+  const totals = useMemo(() => ({
+    total: groceryList.length,
+    completed: groceryList.filter(i=>i.completed).length
+  }), [groceryList]);
+  
   // Memoize the grocery list content for export
   const groceryListContent = useMemo(() => {
     return `SMART PANTRY - GROCERY LIST\n${new Date().toLocaleDateString()}\n${'='.repeat(32)}\n\n${
-      groceryList.map(item => `□ ${item.name} (${item.quantity})`).join('\n')
+      grouped.map(([cat, items]) => `${cat.toUpperCase()}\n${items.map(i=>`□ ${i.name} (${i.quantity})${i.completed?' [x]':''}`).join('\n')}`).join('\n\n')
     }`;
-  }, [groceryList]);
+  }, [grouped]);
   
   // Download grocery list as a text file
   const downloadGroceryList = useCallback(() => {
@@ -96,6 +112,7 @@ const GroceryList = memo(({ toggleModal }) => {
           <style>
             body { font-family: Arial, sans-serif; padding: 20px; }
             h1 { color: #667eea; }
+            h2 { margin-top: 18px; }
             .item { padding: 6px 0; }
             .completed { text-decoration: line-through; color: #999; }
           </style>
@@ -103,14 +120,18 @@ const GroceryList = memo(({ toggleModal }) => {
         <body>
           <h1>Smart Pantry - Grocery List</h1>
           <p>${new Date().toLocaleDateString()}</p>
-          <div>
-            ${groceryList.map(item => `
-              <div class="item ${item.completed ? 'completed' : ''}">
-                □ ${item.name} (${item.quantity})
-                ${item.notes ? `<br><small>${item.notes}</small>` : ''}
-              </div>
-            `).join('')}
-          </div>
+          ${grouped.map(([cat, items]) => `
+            <h2>${cat.charAt(0).toUpperCase()+cat.slice(1)}</h2>
+            <div>
+              ${items.map(item => `
+                <div class="item ${item.completed ? 'completed' : ''}">
+                  □ ${item.name} (${item.quantity})
+                  ${item.notes ? `<br><small>${item.notes}</small>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          `).join('')}
+          <p><strong>Total:</strong> ${totals.total} | <strong>Completed:</strong> ${totals.completed}</p>
         </body>
       </html>
     `;
@@ -119,7 +140,50 @@ const GroceryList = memo(({ toggleModal }) => {
     printWindow.document.write(printTemplate);
     printWindow.document.close();
     setTimeout(() => printWindow.print(), 500);
-  }, [groceryList]);
+  }, [grouped, totals]);
+
+  const moveCheckedToInventory = useCallback(() => {
+    const checked = groceryList.filter(i => i.completed);
+    if (checked.length === 0) {
+      showNotification('No completed items to move', 'info');
+      return;
+    }
+    const updatedPantry = [...pantryItems];
+    const remaining = [];
+    for (const item of groceryList) {
+      if (item.completed) {
+        const qty = parseInt(prompt(`Quantity to add for ${item.name}?`, item.quantity || '1')) || 1;
+        const existing = updatedPantry.find(p => p.name.toLowerCase() === item.name.toLowerCase());
+        if (existing) {
+          const newQty = (parseInt(existing.quantity)||0) + qty;
+          existing.quantity = String(newQty);
+        } else {
+          updatedPantry.push({
+            id: `${Date.now()}-${item.id}`,
+            name: item.name,
+            category: item.category || 'other',
+            quantity: String(qty),
+            expiry: new Date(Date.now()+14*24*60*60*1000).toISOString(), // default 2 weeks
+          });
+        }
+      } else {
+        remaining.push(item);
+      }
+    }
+    setPantryItems(updatedPantry);
+    setGroceryList(remaining);
+    showNotification('Moved purchased items to Inventory', 'success');
+  }, [groceryList, pantryItems, setPantryItems, setGroceryList, showNotification]);
+
+  const shareList = useCallback(() => {
+    const text = groceryListContent;
+    if (navigator.share) {
+      navigator.share({ title: 'Smart Pantry Grocery List', text }).catch(()=>{});
+    } else {
+      navigator.clipboard.writeText(text);
+      showNotification('List copied to clipboard', 'info');
+    }
+  }, [groceryListContent, showNotification]);
 
   return (
     <>
@@ -166,17 +230,30 @@ const GroceryList = memo(({ toggleModal }) => {
         >
           <i className="fas fa-print"></i>Print
         </button>
+
+        <button className="btn btn-secondary" onClick={shareList}>
+          <i className="fas fa-share"></i>Share
+        </button>
+
+        <button className="btn btn-success" onClick={moveCheckedToInventory}>
+          <i className="fas fa-arrow-right"></i>Move Checked to Inventory
+        </button>
       </div>
 
       <div className="grocery-list">
-        {groceryList.length > 0 ? (
-          groceryList.map(item => (
-            <GroceryItem 
-              key={item.id}
-              item={item}
-              onToggle={toggleGroceryItem}
-              onRemove={removeGroceryItem}
-            />
+        {grouped.length > 0 ? (
+          grouped.map(([cat, items]) => (
+            <div key={cat} className="grocery-category">
+              <h3>{cat.charAt(0).toUpperCase()+cat.slice(1)} <small>({items.length})</small></h3>
+              {items.map(item => (
+                <GroceryItem 
+                  key={item.id}
+                  item={item}
+                  onToggle={toggleGroceryItem}
+                  onRemove={removeGroceryItem}
+                />
+              ))}
+            </div>
           ))
         ) : (
           <div style={{textAlign: 'center', padding: '2rem', color: '#666'}}>
